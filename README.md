@@ -30,8 +30,9 @@ Principios actuales del proyecto:
 
 ## Estado actual
 
-- Home simplificada a: logo, bibliografía, buscador, `Motivo de consulta`, `Medicamentos`, `Cálculos` y `Actividad reciente`.
-- Primer protocolo real operativo: `fibrilación auricular`.
+- Home simplificada a: logo, bibliografía, buscador, accesos a `Protocolos`, `Cálculos`, `Medicamentos` y `Actividad reciente`.
+- Pantalla propia de `Protocolos` como entrada a módulos clínicos auditados.
+- Primer protocolo real operativo: `fibrilación auricular`, dividido en vistas cortas: `Resumen`, `Decisión`, `Cálculos`, `Medicación` y `Seguridad`.
 - Cálculos activos del módulo FA: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
 - Fichas farmacológicas activas del módulo FA enlazadas desde el protocolo y desde `Medicamentos`.
 - Bibliografía base activa: `Murillo 7.ª ed.` auditada con separación entre `página índice`, `página real` y `página PDF`.
@@ -44,9 +45,9 @@ Principios actuales del proyecto:
 
 | Sección | Estado | Función real hoy | Relación con el resto |
 | --- | --- | --- | --- |
-| Home | Activa | Punto de entrada con buscador, accesos y actividad reciente. | Lleva a protocolos, cálculos, medicamentos y bibliografía. |
-| Motivo de consulta | Activa | Lista de módulos clínicos auditados; solo `fibrilación auricular` está implementado como protocolo completo. | Abre protocolo real o temas auditados sin desarrollo completo. |
-| Protocolos | Activa | Contiene el flujo clínico compacto del módulo activo. | Embebe o enlaza cálculos, medicación y bibliografía. |
+| Home | Activa | Punto de entrada con buscador, accesos rápidos y actividad reciente. | Lleva a protocolos, cálculos, medicamentos y bibliografía. |
+| Protocolos | Activa | Lista de módulos clínicos auditados y acceso al protocolo real disponible. | Abre protocolo real o temas auditados sin desarrollo completo. |
+| Módulo FA | Activo | Flujo clínico dividido en vistas cortas: `Resumen`, `Decisión`, `Cálculos`, `Medicación` y `Seguridad`. | Embebe o enlaza cálculos, medicación y bibliografía sin saturar una sola pantalla. |
 | Cálculos | Activa | Agrupa cálculos implementados y muestra auditoría de pendientes. | Los cálculos activos también se abren desde el protocolo. |
 | Medicamentos | Activa | Reúne fichas farmacológicas completas del módulo activo. | Cada ficha puede abrirse desde el protocolo y volver a él. |
 | Bibliografía | Activa | Da acceso a la obra base y a referencias estructuradas. | Cada módulo guarda sus referencias y páginas verificadas. |
@@ -55,18 +56,21 @@ Principios actuales del proyecto:
 ### Lógica de navegación entre módulos
 
 1. La `Home` funciona como entrada principal.
-2. El buscador actual filtra temas cargados en `Motivo de consulta`.
-3. Al abrir un protocolo activo, la navegación prioriza el flujo clínico rápido.
-4. Desde el protocolo se puede abrir un cálculo concreto o una ficha farmacológica concreta.
-5. Si un cálculo o un medicamento se abre desde el protocolo, la interfaz conserva botón claro de retorno al protocolo.
-6. Los mismos cálculos siguen existiendo en la sección general de `Cálculos`.
-7. Las mismas fichas siguen existiendo en la sección general de `Medicamentos`.
-8. La bibliografía se mantiene accesible tanto desde cabecera como dentro de cada módulo que ya la usa.
+2. Desde `Home` se entra a `Protocolos`, `Cálculos` o `Medicamentos` sin pasar por una pantalla larga.
+3. El buscador actual filtra módulos clínicos auditados y puede abrirlos directamente.
+4. La pantalla `Protocolos` concentra el acceso a módulos activos y temas solo auditados.
+5. Al abrir `fibrilación auricular`, la navegación prioriza vistas cortas y no una página continua.
+6. Desde el protocolo se puede abrir un cálculo concreto o una ficha farmacológica concreta.
+7. Si un cálculo o un medicamento se abre desde el protocolo, la interfaz conserva botón claro de retorno al protocolo y a la subsección de origen.
+8. Los mismos cálculos siguen existiendo en la sección general de `Cálculos`.
+9. Las mismas fichas siguen existiendo en la sección general de `Medicamentos`.
+10. La bibliografía se mantiene accesible desde cabecera y dentro del protocolo como acceso secundario.
 
 ### Cómo se conectan los módulos
 
 - `Home` prioriza navegación, no lectura.
-- `Protocolos` son el centro clínico del proyecto.
+- `Protocolos` es la puerta de entrada a módulos clínicos concretos.
+- `Módulo FA` ya no se resuelve como pantalla única; se reparte en subpantallas cortas.
 - `Cálculos` solo se implementan cuando un protocolo real los necesita.
 - `Medicamentos` se construyen a partir de los fármacos realmente usados en un protocolo activo.
 - `Bibliografía` no vive como texto suelto al final: cada módulo guarda referencias estructuradas.
@@ -97,8 +101,9 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
 
 - `src/App.jsx`
   - shell principal de la app
-  - navegación entre home, protocolo, cálculos, medicamentos y bibliografía
+  - navegación entre `Home`, `Protocolos`, `Cálculos`, `Medicamentos` y bibliografía
   - retorno contextual al origen cuando se abre cálculo o fármaco desde protocolo
+  - control de subpantallas cortas dentro del módulo de `fibrilación auricular`
 
 - `src/data/bibliography.js`
   - catálogo bibliográfico
@@ -107,7 +112,7 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
 
 - `src/data/modules.js`
   - índice clínico auditado
-  - módulos visibles en `Motivo de consulta`
+  - módulos visibles en `Protocolos`
   - actividad reciente
   - bibliografía base usada
 
@@ -136,7 +141,7 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
 
 | Módulo | Capítulo | Página real | Estado | Qué existe hoy |
 | --- | --- | ---: | --- | --- |
-| Fibrilación auricular | Cap. 23 | 185 | Creado | Protocolo real, cálculos integrados, medicación enlazada y bibliografía interna. |
+| Fibrilación auricular | Cap. 23 | 185 | Creado | Protocolo real dividido en `Resumen`, `Decisión`, `Cálculos`, `Medicación` y `Seguridad`, con bibliografía interna discreta. |
 | Shock | Cap. 18 | 154 | Solo indexado | Tema auditado, sin protocolo operativo. |
 | Dolor torácico agudo | Cap. 25 | 207 | Solo indexado | Tema auditado, sin protocolo operativo. |
 | Ictus | Cap. 64 | 442 | Solo indexado | Tema auditado, sin protocolo operativo. |
@@ -239,6 +244,7 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
 | 2026-04-05 | Ajuste de navegación móvil | Protocolo FA / shell | Se redujo el scroll, se compactaron bloques y se evitó desbordamiento horizontal. |
 | 2026-04-05 | Primera bitácora del proyecto | README | Se documentó la evolución por fases para evitar que el repositorio quedara sin trazabilidad funcional. |
 | 2026-04-05 | Reestructuración del README como documento vivo | README | Se rehízo el `README` para reflejar arquitectura, índice funcional, bibliografía y pendientes reales. |
+| 2026-04-05 | Rearquitectura móvil de navegación | Home / Protocolos / módulo FA | La app pasó a abrir siempre en `Home`, se creó una pantalla propia de `Protocolos` y FA se dividió en subpantallas breves para reducir scroll. |
 
 ## Pendiente
 

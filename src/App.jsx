@@ -39,8 +39,6 @@ const surfaceClass =
 const mutedSurfaceClass = 'rounded-[1rem] border border-slate-200/80 bg-slate-50/80';
 const subtleButtonClass =
   'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950';
-const primaryButtonClass =
-  'inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800';
 
 const initialCalculatorInputs = {
   'cha2ds2-vasc': {
@@ -72,11 +70,6 @@ const initialCalculatorInputs = {
 };
 
 const pendingCalculations = calculationAudit.filter((item) => item.status !== 'implementado');
-
-const compactMedicationPreview = medicationGroups.map((group) => ({
-  title: group.title,
-  items: group.items.slice(0, 2).map((id) => getMedication(id)),
-}));
 
 const formatReference = (item) => `${item.chapter} · p. ${item.verifiedPage}`;
 const compactSentence = (value) => value.split('. ')[0]?.trim() ?? value;
@@ -521,32 +514,69 @@ const Header = ({ isScrolled, onHome, onBibliography }) => (
   </header>
 );
 
+const HomeActionCard = ({ icon: Icon, title, meta, onClick, tone = 'neutral' }) => {
+  const toneClass =
+    tone === 'primary'
+      ? 'border-sky-200 bg-sky-50/80'
+      : tone === 'dark'
+        ? 'border-slate-950 bg-slate-950 text-white'
+        : 'border-slate-200 bg-white';
+
+  const titleClass = tone === 'dark' ? 'text-white' : 'text-slate-950';
+  const metaClass = tone === 'dark' ? 'text-slate-300' : 'text-slate-500';
+  const iconClass =
+    tone === 'dark'
+      ? 'bg-white/10 text-white'
+      : tone === 'primary'
+        ? 'bg-white text-sky-700'
+        : 'bg-slate-100 text-slate-700';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group flex w-full items-center justify-between gap-4 rounded-[1.2rem] border px-4 py-4 text-left transition-colors hover:border-slate-300 ${toneClass}`}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${iconClass}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className={`text-base font-semibold tracking-tight ${titleClass}`}>{title}</p>
+          <p className={`mt-1 text-sm ${metaClass}`}>{meta}</p>
+        </div>
+      </div>
+      <ChevronRight
+        className={`h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${
+          tone === 'dark' ? 'text-white/60' : 'text-slate-300'
+        }`}
+      />
+    </button>
+  );
+};
+
 const HomeView = ({
   searchQuery,
   onSearchChange,
   searchResults,
   onSearchOpen,
-  onModuleOpen,
+  onProtocolsOpen,
   onCalculationsOpen,
-  onCalculationOpen,
   onMedicationsOpen,
-  onMedicationOpen,
   onActivityOpen,
 }) => {
-  const featuredProtocol = getMotivoModule('fibrilacion-auricular');
-  const secondaryModules = motivoConsultaModules.filter((module) => module.id !== 'fibrilacion-auricular');
+  const activeModules = motivoConsultaModules.filter((module) => module.implemented);
+  const auditedModules = motivoConsultaModules.filter((module) => !module.implemented);
+  const medicationCount = medicationGroups.reduce((count, group) => count + group.items.length, 0);
 
   return (
-    <div className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
-      <section className="pt-28">
-        <div className="max-w-3xl">
-          <p className="text-sm font-medium text-sky-700">Primer contenido clínico activo</p>
-          <h1 className="mt-2 text-[2rem] font-semibold tracking-tight text-slate-950 sm:text-[2.6rem]">
-            Consulta clínica inicial
-          </h1>
-        </div>
+    <div className="mx-auto max-w-5xl px-5 pb-14 sm:px-8">
+      <section className="pt-24">
+        <h1 className="text-[1.9rem] font-semibold tracking-tight text-slate-950 sm:text-[2.3rem]">
+          Inicio clínico
+        </h1>
 
-        <div className="relative mt-5 max-w-3xl">
+        <div className="relative mt-4 max-w-3xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -584,125 +614,29 @@ const HomeView = ({
             )}
           </div>
         ) : null}
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {motivoConsultaModules.slice(0, 6).map((module) => (
-            <button
-              key={module.id}
-              type="button"
-              onClick={() => onModuleOpen(module.id)}
-              className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800"
-            >
-              {module.shortTitle}
-            </button>
-          ))}
-        </div>
       </section>
 
-      <section className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)]">
-        <article className={`${surfaceClass} p-6 sm:p-7`}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-sky-700">
-                Motivo de consulta
-              </p>
-              <h2 className="mt-2 text-[1.55rem] font-semibold tracking-tight text-slate-950">
-                {featuredProtocol.title}
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">{featuredProtocol.summary}</p>
-            </div>
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
-              <Stethoscope className="h-5 w-5" />
-            </span>
-          </div>
-
-          <div className="mt-5 rounded-[1.1rem] border border-slate-200 bg-sky-50/70 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge tone="active">Activo</StatusBadge>
-                  <span className="text-sm text-slate-500">{formatReference(featuredProtocol)}</span>
-                </div>
-                <p className="mt-2 text-sm font-medium text-slate-900">
-                  Protocolo real con cálculo embebido, anticoagulación y fichas farmacológicas enlazadas.
-                </p>
-              </div>
-              <button type="button" onClick={() => onModuleOpen(featuredProtocol.id)} className={primaryButtonClass}>
-                Abrir protocolo
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-2">
-            {secondaryModules.map((module) => (
-              <SurfaceLinkRow
-                key={module.id}
-                title={module.title}
-                meta={`${formatReference(module)} · ${module.status}`}
-                onClick={() => onModuleOpen(module.id)}
-              />
-            ))}
-          </div>
-        </article>
-
-        <div className="grid gap-4">
-          <article className={`${surfaceClass} p-5`}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight text-slate-950">Medicamentos</h2>
-                <p className="mt-1 text-sm text-slate-500">Fichas activas del módulo de fibrilación auricular.</p>
-              </div>
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                <Pill className="h-5 w-5" />
-              </span>
-            </div>
-            <div className="mt-4 space-y-2">
-              {compactMedicationPreview.flatMap((group) => group.items).slice(0, 4).map((medication) => (
-                <SurfaceLinkRow
-                  key={medication.id}
-                  title={medication.name}
-                  meta={medication.family}
-                  onClick={() => onMedicationOpen(medication.id)}
-                />
-              ))}
-            </div>
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <button type="button" onClick={onMedicationsOpen} className={subtleButtonClass}>
-                Ver fichas activas
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </article>
-
-          <article className={`${surfaceClass} p-5`}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold tracking-tight text-slate-950">Cálculos</h2>
-                <p className="mt-1 text-sm text-slate-500">Tres herramientas operativas para la FA.</p>
-              </div>
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-                <Calculator className="h-5 w-5" />
-              </span>
-            </div>
-            <div className="mt-4 space-y-2">
-              {implementedCalculators.map((calculator) => (
-                <SurfaceLinkRow
-                  key={calculator.id}
-                  title={calculator.title}
-                  meta={`${calculator.block} · p. ${calculator.verifiedPage}`}
-                  onClick={() => onCalculationOpen(calculator.id)}
-                />
-              ))}
-            </div>
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <button type="button" onClick={onCalculationsOpen} className={subtleButtonClass}>
-                Abrir índice de cálculos
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </article>
-        </div>
+      <section className="mt-6 grid gap-3 sm:grid-cols-2">
+        <HomeActionCard
+          icon={Stethoscope}
+          title="Protocolos"
+          meta={`${activeModules.length} activo · ${auditedModules.length} auditados`}
+          onClick={onProtocolsOpen}
+          tone="dark"
+        />
+        <HomeActionCard
+          icon={Calculator}
+          title="Cálculos"
+          meta={`${implementedCalculators.length} activos`}
+          onClick={onCalculationsOpen}
+          tone="primary"
+        />
+        <HomeActionCard
+          icon={Pill}
+          title="Medicamentos"
+          meta={`${medicationCount} fichas activas`}
+          onClick={onMedicationsOpen}
+        />
       </section>
 
       <section className={`${surfaceClass} mt-4 overflow-hidden`}>
@@ -736,36 +670,67 @@ const HomeView = ({
   );
 };
 
-const AuditView = ({ module, onBack }) => (
-  <div className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8">
-    <BackBar label="Volver" onClick={onBack} />
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)]">
-      <section className={`${surfaceClass} p-6`}>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge tone="pending">Auditado</StatusBadge>
-          <span className="text-sm text-slate-500">{formatReference(module)}</span>
+const ProtocolsView = ({ onBack, onModuleOpen }) => {
+  const activeModules = motivoConsultaModules.filter((module) => module.implemented);
+  const auditedModules = motivoConsultaModules.filter((module) => !module.implemented);
+
+  return (
+    <div className="mx-auto max-w-5xl px-5 pb-16 pt-24 sm:px-8">
+      <BackBar label="Inicio" onClick={onBack} />
+
+      <section className={`${surfaceClass} p-5`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-[1.45rem] font-semibold tracking-tight text-slate-950">Protocolos</h1>
+            <p className="mt-1 text-sm text-slate-500">Motivos de consulta y temas clínicos auditados.</p>
+          </div>
+          <StatusBadge tone="active">{activeModules.length} activo</StatusBadge>
         </div>
-        <h1 className="mt-3 text-[2rem] font-semibold tracking-tight text-slate-950">{module.title}</h1>
-        <p className="mt-3 max-w-2xl text-sm text-slate-600">
-          {module.summary}
-        </p>
       </section>
 
-      <DetailPanel title="Estado del tema">
-        <div className="space-y-3">
-          <div className={`${mutedSurfaceClass} p-4`}>
-            <p className="text-sm font-medium text-slate-900">Sin protocolo operativo todavía</p>
-            <p className="mt-1 text-sm text-slate-500">
-              El tema ya tiene ubicación bibliográfica verificada, pero no se ha construido su flujo clínico en esta fase.
-            </p>
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <DetailPanel title="Protocolo activo">
+          <div className="space-y-2">
+            {activeModules.map((module) => (
+              <SurfaceLinkRow
+                key={module.id}
+                title={module.title}
+                meta={`${formatReference(module)} · protocolo operativo`}
+                onClick={() => onModuleOpen(module.id)}
+              />
+            ))}
           </div>
-          <div className={`${mutedSurfaceClass} p-4`}>
-            <p className="text-sm font-medium text-slate-900">Ubicación auditada</p>
-            <p className="mt-1 text-sm text-slate-500">{module.section}</p>
+        </DetailPanel>
+
+        <DetailPanel title="Temas auditados">
+          <div className="space-y-2">
+            {auditedModules.map((module) => (
+              <SurfaceLinkRow
+                key={module.id}
+                title={module.title}
+                meta={`${formatReference(module)} · tema auditado`}
+                onClick={() => onModuleOpen(module.id)}
+              />
+            ))}
           </div>
-        </div>
-      </DetailPanel>
+        </DetailPanel>
+      </div>
     </div>
+  );
+};
+
+const AuditView = ({ module, onBack }) => (
+  <div className="mx-auto max-w-4xl px-5 pb-16 pt-24 sm:px-8">
+    <BackBar label="Volver" onClick={onBack} />
+
+    <section className={`${surfaceClass} p-5`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge tone="pending">Auditado</StatusBadge>
+        <span className="text-sm text-slate-500">{formatReference(module)}</span>
+      </div>
+      <h1 className="mt-3 text-[1.8rem] font-semibold tracking-tight text-slate-950">{module.title}</h1>
+      <p className="mt-2 text-sm text-slate-600">{module.summary}</p>
+    </section>
 
     <div className="mt-4">
       <BibliographyBlock entries={module.bibliography} />
@@ -775,7 +740,7 @@ const AuditView = ({ module, onBack }) => (
 
 const ProtocolView = ({
   protocol,
-  initialSection = 'decision',
+  initialSection = 'summary',
   calculatorInputs,
   onCalculatorChange,
   onCalculatorOpen,
@@ -784,89 +749,124 @@ const ProtocolView = ({
 }) => {
   const [activeSection, setActiveSection] = useState(initialSection);
   const [openMiniCalculator, setOpenMiniCalculator] = useState(null);
+  const [activeDecisionId, setActiveDecisionId] = useState(protocol.decisionCards[0]?.id ?? '');
+  const [activeMedicationGroup, setActiveMedicationGroup] = useState(protocol.medicationGroups[0]?.title ?? '');
   const sourceEntry = protocol.bibliography[0];
+  const currentDecision = protocol.decisionCards.find((card) => card.id === activeDecisionId) ?? protocol.decisionCards[0];
+  const currentMedicationGroup =
+    protocol.medicationGroups.find((group) => group.title === activeMedicationGroup) ?? protocol.medicationGroups[0];
+
+  const decisionLabels = {
+    inestable: 'Inestable',
+    lt48: '< 48 h',
+    gt48: '> 48 h',
+    'slow-normal': 'Lenta / controlada',
+  };
+
+  const changeSection = (nextSection) => {
+    setActiveSection(nextSection);
+
+    if (nextSection !== 'calculos') {
+      setOpenMiniCalculator(null);
+    }
+  };
 
   return (
-    <div className="mx-auto max-w-5xl px-5 pb-16 pt-28 sm:px-8">
+    <div className="mx-auto max-w-4xl px-5 pb-16 pt-24 sm:px-8">
       <BackBar label="Volver" onClick={onBack} />
 
-      <section className={`${surfaceClass} p-5 sm:p-6`}>
+      <section className={`${surfaceClass} p-4 sm:p-5`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge tone="active">Activo</StatusBadge>
-              <span className="text-sm text-slate-500">
+              <span className="text-xs text-slate-500">
                 {protocol.chapter} · p. {protocol.verifiedPage}
               </span>
             </div>
-            <h1 className="mt-3 text-[1.85rem] font-semibold tracking-tight text-slate-950 sm:text-[2.1rem]">
+            <h1 className="mt-2 text-[1.55rem] font-semibold tracking-tight text-slate-950 sm:text-[1.8rem]">
               {protocol.title}
             </h1>
-            <p className="mt-2 text-sm text-slate-600">{protocol.summary}</p>
           </div>
 
           {sourceEntry?.href ? (
-            <a href={sourceEntry.href} target="_blank" rel="noreferrer" className={subtleButtonClass}>
-              Abrir página FA
-              <ExternalLink className="h-4 w-4" />
+            <a
+              href={sourceEntry.href}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-950"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              Fuente
             </a>
           ) : null}
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          {protocol.quickSummary.map((item) => (
-            <QuickSummaryCard key={item.id} title={item.title} action={item.action} />
-          ))}
-        </div>
-
         <div className="mt-4 flex flex-wrap gap-2">
-          {protocol.quickChecks.map((item) => (
-            <span
-              key={item}
-              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
+          <ProtocolSectionButton
+            label="Resumen"
+            active={activeSection === 'summary'}
+            onClick={() => changeSection('summary')}
+          />
           <ProtocolSectionButton
             label="Decisión"
             active={activeSection === 'decision'}
-            onClick={() => setActiveSection('decision')}
+            onClick={() => changeSection('decision')}
           />
           <ProtocolSectionButton
             label="Cálculos"
             active={activeSection === 'calculos'}
-            onClick={() => setActiveSection('calculos')}
+            onClick={() => changeSection('calculos')}
           />
           <ProtocolSectionButton
             label="Medicación"
             active={activeSection === 'medicacion'}
-            onClick={() => setActiveSection('medicacion')}
+            onClick={() => changeSection('medicacion')}
           />
           <ProtocolSectionButton
             label="Seguridad"
             active={activeSection === 'seguridad'}
-            onClick={() => setActiveSection('seguridad')}
+            onClick={() => changeSection('seguridad')}
           />
         </div>
       </section>
 
       <div className="mt-4">
-        {activeSection === 'decision' ? (
-          <DetailPanel title="Decisión rápida">
-            <div className="grid gap-3 lg:grid-cols-2">
-              {protocol.decisionCards.map((card) => (
-                <DecisionCard key={card.id} card={card} />
+        {activeSection === 'summary' ? (
+          <DetailPanel title="Resumen rápido">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {protocol.quickSummary.map((item) => (
+                <QuickSummaryCard key={item.id} title={item.title} action={item.action} />
+              ))}
+            </div>
+            <div className="mt-3 space-y-2">
+              {protocol.quickChecks.map((item) => (
+                <div key={item} className="rounded-[0.95rem] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                  {item}
+                </div>
               ))}
             </div>
           </DetailPanel>
         ) : null}
 
+        {activeSection === 'decision' ? (
+          <DetailPanel title="Decisión">
+            <div className="mb-3 flex flex-wrap gap-2">
+              {protocol.decisionCards.map((card) => (
+                <ProtocolSectionButton
+                  key={card.id}
+                  label={decisionLabels[card.id] ?? card.situation}
+                  active={currentDecision.id === card.id}
+                  onClick={() => setActiveDecisionId(card.id)}
+                />
+              ))}
+            </div>
+            <DecisionCard card={currentDecision} />
+          </DetailPanel>
+        ) : null}
+
         {activeSection === 'calculos' ? (
-          <DetailPanel title="Cálculos del protocolo">
+          <DetailPanel title="Cálculos">
             <div className="space-y-3">
               {protocol.calculatorIds.map((calculatorId) => {
                 const calculator = getCalculator(calculatorId);
@@ -898,27 +898,29 @@ const ProtocolView = ({
         ) : null}
 
         {activeSection === 'medicacion' ? (
-          <DetailPanel title="Medicación útil en FA">
-            <div className="space-y-4">
+          <DetailPanel title="Medicación">
+            <div className="mb-3 flex flex-wrap gap-2">
               {protocol.medicationGroups.map((group) => (
-                <div key={group.title}>
-                  <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                    {group.title}
-                  </p>
-                  <div className="space-y-2">
-                    {group.medicationIds.map((medicationId) => {
-                      const medication = getMedication(medicationId);
-                      return (
-                        <MedicationQuickRow
-                          key={medication.id}
-                          medication={medication}
-                          onOpen={() => onMedicationOpen(medication.id, 'medicacion')}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+                <ProtocolSectionButton
+                  key={group.title}
+                  label={group.title}
+                  active={currentMedicationGroup.title === group.title}
+                  onClick={() => setActiveMedicationGroup(group.title)}
+                />
               ))}
+            </div>
+
+            <div className="space-y-2">
+              {currentMedicationGroup.medicationIds.map((medicationId) => {
+                const medication = getMedication(medicationId);
+                return (
+                  <MedicationQuickRow
+                    key={medication.id}
+                    medication={medication}
+                    onOpen={() => onMedicationOpen(medication.id, 'medicacion')}
+                  />
+                );
+              })}
             </div>
           </DetailPanel>
         ) : null}
@@ -931,17 +933,6 @@ const ProtocolView = ({
                   {warning}
                 </div>
               ))}
-              {sourceEntry?.href ? (
-                <a
-                  href={sourceEntry.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-                >
-                  <span>Ver fuente FA</span>
-                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-300" />
-                </a>
-              ) : null}
             </div>
           </DetailPanel>
         ) : null}
@@ -1169,20 +1160,20 @@ const App = () => {
     });
   };
 
-  const openModule = (moduleId) => {
+  const openModule = (moduleId, returnTo = { view: 'protocols' }) => {
     const module = getMotivoModule(moduleId);
 
     if (module.implemented) {
-      navigate({ view: 'protocol', protocolId: module.id });
+      navigate({ view: 'protocol', protocolId: module.id, section: 'summary', returnTo });
       return;
     }
 
-    navigate({ view: 'audit', moduleId: module.id });
+    navigate({ view: 'audit', moduleId: module.id, returnTo });
   };
 
   const openActivityTarget = (target) => {
     if (target.type === 'protocol') {
-      navigate({ view: 'protocol', protocolId: target.id });
+      openModule(target.id, { view: 'home' });
       return;
     }
 
@@ -1234,7 +1225,7 @@ const App = () => {
       return (
         <ProtocolView
           protocol={protocol}
-          initialSection={route.section ?? 'decision'}
+          initialSection={route.section ?? 'summary'}
           calculatorInputs={calculatorInputs}
           onCalculatorChange={(calculatorId, field, value) =>
             updateNestedState(setCalculatorInputs, calculatorId, field, value)
@@ -1253,13 +1244,22 @@ const App = () => {
               section: section ?? 'medicacion',
             })
           }
+          onBack={handleBack}
+        />
+      );
+    }
+
+    if (route.view === 'protocols') {
+      return (
+        <ProtocolsView
           onBack={() => navigate({ view: 'home' })}
+          onModuleOpen={(moduleId) => openModule(moduleId, { view: 'protocols' })}
         />
       );
     }
 
     if (route.view === 'audit') {
-      return <AuditView module={getMotivoModule(route.moduleId)} onBack={() => navigate({ view: 'home' })} />;
+      return <AuditView module={getMotivoModule(route.moduleId)} onBack={handleBack} />;
     }
 
     if (route.view === 'calculations') {
@@ -1304,12 +1304,13 @@ const App = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchResults={searchResults}
-        onSearchOpen={openModule}
-        onModuleOpen={openModule}
+        onSearchOpen={(moduleId) => {
+          setSearchQuery('');
+          openModule(moduleId, { view: 'home' });
+        }}
+        onProtocolsOpen={() => navigate({ view: 'protocols' })}
         onCalculationsOpen={() => openCalculations({ view: 'home' })}
-        onCalculationOpen={(calculatorId) => openCalculator(calculatorId, { view: 'home' })}
         onMedicationsOpen={() => openMedications({ view: 'home' })}
-        onMedicationOpen={(medicationId) => openMedication(medicationId, { view: 'home' })}
         onActivityOpen={openActivityTarget}
       />
     );
