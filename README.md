@@ -1,15 +1,265 @@
 # NexoClx
 
-Interfaz React + Vite para consulta clínica inicial basada en bibliografía real de urgencias.  
-La primera capa clínica activa en esta fase es `fibrilación auricular`.
+NexoClx es una app web estática para consulta clínica inicial basada en bibliografía real de urgencias.  
+Su objetivo no es replicar un libro en pantalla, sino convertir capítulos auditados en módulos rápidos de uso clínico, conectando protocolo, cálculos, medicación y referencia bibliográfica verificable.
+
+## README vivo
+
+Este `README` es el índice maestro del proyecto.  
+Cada cambio relevante en interfaz, navegación, módulos clínicos, cálculos, fichas farmacológicas, bibliografía o plantillas debe reflejarse aquí.
+
+Debe mantenerse actualizado en cuatro capas:
+
+- estructura funcional real de la app
+- índice de lo implementado, lo auditado y lo pendiente
+- relación entre protocolos, cálculos, medicamentos y bibliografía
+- bitácora acumulativa de cambios relevantes
+
+## Qué es NexoClx
+
+NexoClx busca ofrecer una interfaz clínica breve, usable en móvil y basada en fuentes reales. La app parte de una obra base auditada y avanza módulo por módulo.
+
+Principios actuales del proyecto:
+
+- interfaz compacta y directa
+- contenido clínico solo cuando está verificado
+- bibliografía presente, pero no dominante
+- cálculos implementados solo cuando un módulo real los necesita
+- fichas farmacológicas con fuente explícita
+- navegación contextual entre protocolo, cálculo y medicación
 
 ## Estado actual
 
-- Home reducida a lo esencial: logo, acceso a bibliografía, buscador, `Motivo de consulta`, `Medicamentos`, `Cálculos` y `Actividad reciente`.
+- Home simplificada a: logo, bibliografía, buscador, `Motivo de consulta`, `Medicamentos`, `Cálculos` y `Actividad reciente`.
 - Primer protocolo real operativo: `fibrilación auricular`.
-- Cálculos activos del protocolo: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
-- Fichas farmacológicas activas enlazadas desde el protocolo y desde `Medicamentos`, con base principal en `CIMA AEMPS`.
-- GitHub Pages publicado en `https://olsanju-hub.github.io/NexoClx/`.
+- Cálculos activos del módulo FA: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
+- Fichas farmacológicas activas del módulo FA enlazadas desde el protocolo y desde `Medicamentos`.
+- Bibliografía base activa: `Murillo 7.ª ed.` auditada con separación entre `página índice`, `página real` y `página PDF`.
+- Plantilla de imagen inicial creada solo como estructura: `RX tórax sistemática`.
+- Despliegue activo en GitHub Pages: `https://olsanju-hub.github.io/NexoClx/`.
+
+## Estructura funcional de la app
+
+### Secciones actuales
+
+| Sección | Estado | Función real hoy | Relación con el resto |
+| --- | --- | --- | --- |
+| Home | Activa | Punto de entrada con buscador, accesos y actividad reciente. | Lleva a protocolos, cálculos, medicamentos y bibliografía. |
+| Motivo de consulta | Activa | Lista de módulos clínicos auditados; solo `fibrilación auricular` está implementado como protocolo completo. | Abre protocolo real o temas auditados sin desarrollo completo. |
+| Protocolos | Activa | Contiene el flujo clínico compacto del módulo activo. | Embebe o enlaza cálculos, medicación y bibliografía. |
+| Cálculos | Activa | Agrupa cálculos implementados y muestra auditoría de pendientes. | Los cálculos activos también se abren desde el protocolo. |
+| Medicamentos | Activa | Reúne fichas farmacológicas completas del módulo activo. | Cada ficha puede abrirse desde el protocolo y volver a él. |
+| Bibliografía | Activa | Da acceso a la obra base y a referencias estructuradas. | Cada módulo guarda sus referencias y páginas verificadas. |
+| Plantillas de imagen | En desarrollo | Solo existe la estructura inicial para `RX tórax sistemática`. | Quedará conectada a bibliografía específica cuando esa fuente esté en el repo. |
+
+### Lógica de navegación entre módulos
+
+1. La `Home` funciona como entrada principal.
+2. El buscador actual filtra temas cargados en `Motivo de consulta`.
+3. Al abrir un protocolo activo, la navegación prioriza el flujo clínico rápido.
+4. Desde el protocolo se puede abrir un cálculo concreto o una ficha farmacológica concreta.
+5. Si un cálculo o un medicamento se abre desde el protocolo, la interfaz conserva botón claro de retorno al protocolo.
+6. Los mismos cálculos siguen existiendo en la sección general de `Cálculos`.
+7. Las mismas fichas siguen existiendo en la sección general de `Medicamentos`.
+8. La bibliografía se mantiene accesible tanto desde cabecera como dentro de cada módulo que ya la usa.
+
+### Cómo se conectan los módulos
+
+- `Home` prioriza navegación, no lectura.
+- `Protocolos` son el centro clínico del proyecto.
+- `Cálculos` solo se implementan cuando un protocolo real los necesita.
+- `Medicamentos` se construyen a partir de los fármacos realmente usados en un protocolo activo.
+- `Bibliografía` no vive como texto suelto al final: cada módulo guarda referencias estructuradas.
+- `Plantillas` siguen una lógica paralela: estructura, fuente base y estado de desarrollo.
+
+### Integración de la bibliografía en cada módulo
+
+Cada módulo puede enlazar una o varias referencias estructuradas. La app distingue:
+
+- `Página índice`: página declarada por el índice del libro
+- `Página real`: página verificada donde empieza de verdad el contenido útil
+- `Página PDF`: página física del archivo usada para `#page=`
+
+Cada referencia guarda:
+
+- `referenceId`
+- `filePath`
+- `indexPages`
+- `verifiedPages`
+- `pdfPages`
+- `href`
+- `internalId`
+- `note`
+
+La interfaz prioriza `verifiedPages` para mostrar la ubicación real del contenido y usa `pdfPages` solo para construir el enlace al PDF cuando hace falta.
+
+## Estructura técnica actual
+
+- `src/App.jsx`
+  - shell principal de la app
+  - navegación entre home, protocolo, cálculos, medicamentos y bibliografía
+  - retorno contextual al origen cuando se abre cálculo o fármaco desde protocolo
+
+- `src/data/bibliography.js`
+  - catálogo bibliográfico
+  - generador de enlaces al PDF
+  - estructura común para todas las referencias
+
+- `src/data/modules.js`
+  - índice clínico auditado
+  - módulos visibles en `Motivo de consulta`
+  - actividad reciente
+  - bibliografía base usada
+
+- `src/data/protocols.js`
+  - protocolos clínicos reales
+  - actualmente contiene `fibrilación auricular`
+
+- `src/data/calculators.js`
+  - catálogo de cálculos implementados
+  - auditoría completa de escalas detectadas en la obra base
+
+- `src/data/medications.js`
+  - fichas farmacológicas del módulo activo
+  - uso clínico, dosis, vía, frecuencia, duración, IR, IH y fuentes
+
+- `src/data/imageTemplates.js`
+  - auditoría y estructura de plantillas de imagen
+  - primera plantilla en desarrollo: `RX tórax sistemática`
+
+- `public/biblio/urgencias-murillo-7ma.pdf`
+  - obra base activa auditada y enlazada por la app
+
+## Índice funcional del proyecto
+
+### Módulos clínicos
+
+| Módulo | Capítulo | Página real | Estado | Qué existe hoy |
+| --- | --- | ---: | --- | --- |
+| Fibrilación auricular | Cap. 23 | 185 | Creado | Protocolo real, cálculos integrados, medicación enlazada y bibliografía interna. |
+| Shock | Cap. 18 | 154 | Solo indexado | Tema auditado, sin protocolo operativo. |
+| Dolor torácico agudo | Cap. 25 | 207 | Solo indexado | Tema auditado, sin protocolo operativo. |
+| Ictus | Cap. 64 | 442 | Solo indexado | Tema auditado, sin protocolo operativo. |
+| Sepsis | Cap. 107 | 640 | Solo indexado | Tema auditado, sin protocolo operativo. |
+| Coma | Cap. 62 | 428 | Solo indexado | Tema auditado, sin protocolo operativo. |
+| Dolor abdominal agudo | Cap. 50 | 340 | Solo indexado | Tema auditado, sin protocolo operativo. |
+
+### Cálculos / escalas
+
+| Cálculo / escala | Bloque clínico | Página real verificada | Estado | Observaciones |
+| --- | --- | ---: | --- | --- |
+| Aclaramiento de creatinina (Cockcroft-Gault) | Cap. 5 · Bioquímica sanguínea | 39 | Implementado | Se usa ya para revisar ajuste renal de anticoagulantes en FA. |
+| CHA2DS2-VASc | Cap. 23 · Fibrilación y flúter auriculares | 189 | Implementado | Integrado dentro del protocolo FA y también accesible desde `Cálculos`. |
+| HAS-BLED | Cap. 23 · Fibrilación y flúter auriculares | 190 | Implementado | Integrado dentro del protocolo FA y también accesible desde `Cálculos`. |
+| TFG estimado (CKD-EPI) | Cap. 5 · Bioquímica sanguínea | 39 | Pendiente | Auditado, pero fuera del alcance del primer módulo real. |
+| Diferencia alveoloarterial de O2 (∆AaPO2) | Cap. 8 · Gasometría, pulsioximetría y capnografía | 66 | Pendiente | Detectado en bibliografía, no implementado. |
+| GRACE | Cap. 26 · Síndrome coronario agudo | 220 | Pendiente | Escala detectada para futuro módulo. |
+| Clase Killip | Cap. 26 · Síndrome coronario agudo | 220 | Pendiente | Clasificación detectada para futuro módulo. |
+| Escala de Alvarado modificada | Cap. 50 · Dolor abdominal agudo | 349 | Pendiente | Detectada, no implementada. |
+| Escala de coma de Glasgow | Cap. 62 · Coma | 429 | Pendiente | Detectada, no implementada. |
+| NIHSS | Cap. 64 · Ictus | 446 | Pendiente | Detectada, no implementada. |
+| Escala de Rankin modificada | Cap. 64 · Ictus | 442 | Pendiente | Detectada, no implementada. |
+| Escala de Cincinnati | Cap. 64 · Ictus | 446 | Pendiente | Detectada, no implementada. |
+| qSOFA / SOFA | Cap. 107 · Sepsis | 640 | Pendiente | Detectadas, no implementadas. |
+| Modelo de Wells para TVP | Cap. 36 · Enfermedad tromboembólica venosa | 261 | No aplicable por ahora | Queda fuera del alcance actual. |
+| Modelo de Wells para TEP | Cap. 39 · Tromboembolia pulmonar | 278 | No aplicable por ahora | Queda fuera del alcance actual. |
+| PESI / sPESI | Cap. 39 · Tromboembolia pulmonar | 281 | No aplicable por ahora | Queda fuera del alcance actual. |
+| Glasgow-Blatchford | Cap. 48 · Hemorragia digestiva alta | 329 | No aplicable por ahora | Queda fuera del alcance actual. |
+
+### Fichas farmacológicas activas
+
+| Fármaco | Familia | Módulo | Estado | Fuente principal |
+| --- | --- | --- | --- | --- |
+| Metoprolol | Control de frecuencia | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Verapamilo | Control de frecuencia | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Digoxina | Control de frecuencia | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Amiodarona | Control de frecuencia y ritmo | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Apixabán | Anticoagulación | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Dabigatrán | Anticoagulación | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Edoxabán | Anticoagulación | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Rivaroxabán | Anticoagulación | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Acenocumarol | Puente o AVK | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+| Enoxaparina | Puente o AVK | Fibrilación auricular | Implementado | CIMA + Murillo 7.ª ed. |
+
+### Plantillas de imagen
+
+| Plantilla | Bibliografía base | Ubicación real | Estado | Observaciones |
+| --- | --- | --- | --- | --- |
+| RX tórax sistemática | Murillo 7.ª ed. · Cap. 10 Radiografía de tórax | `src/data/imageTemplates.js` | En desarrollo | Solo existe la estructura de plantilla. No se ha añadido una secuencia diagnóstica completa porque la bibliografía específica de radiología no está en el repo. |
+
+### Bibliografía base usada
+
+| Fuente | Ubicación | Estado | Observaciones |
+| --- | --- | --- | --- |
+| *Medicina de urgencias y emergencias. Guía diagnóstica y protocolos de actuación, 7.ª edición* | `public/biblio/urgencias-murillo-7ma.pdf` | Activa | Obra base auditada y usada por la app. |
+| Bibliografía específica de radiología | No detectada en este workspace | No disponible en workspace | Sigue pendiente de incorporación real al repositorio. |
+
+## Índice clínico comprobado
+
+### Convención de páginas
+
+- `Página índice`: numeración mostrada en el índice del libro
+- `Página real`: numeración impresa verificada sobre el contenido real
+- `Página PDF`: página física del archivo para construir enlaces `#page=`
+
+### Patologías / temas auditados
+
+| Tema | Capítulo | Página índice | Página real verificada | Página PDF | Estado | Observaciones |
+| --- | --- | ---: | ---: | ---: | --- | --- |
+| Fibrilación y flúter auriculares | Cap. 23 | 184 | 185 | 210 | Implementado | El índice adelanta el capítulo una página; el arranque útil real está en p. 185. |
+| Soporte vital básico en adultos | Cap. 1 | 2 | 2 | 27 | Auditado | Sin discrepancia. |
+| Soporte vital avanzado en adultos | Cap. 2 | 7 | 7 | 32 | Auditado | Sin discrepancia. |
+| Gasometría, pulsioximetría y capnografía | Cap. 8 | 64 | 64 | 89 | Auditado | Sin discrepancia. |
+| Electrocardiografía de urgencias | Cap. 9 | 71 | 71 | 96 | Auditado | Sin discrepancia. |
+| Radiografía de tórax | Cap. 10 | 83 | 83 | 108 | Auditado | Sin discrepancia. |
+| Ecografía | Cap. 12 | 108 | 108 | 133 | Auditado | Sin discrepancia. |
+| Shock | Cap. 18 | 154 | 154 | 179 | Auditado | El arranque conceptual está en la página indexada; el rótulo se repite en la siguiente. |
+| Insuficiencia cardíaca | Cap. 19 | 161 | 161 | 186 | Auditado | Sin discrepancia. |
+| Dolor torácico agudo | Cap. 25 | 207 | 207 | 232 | Auditado | El contenido arranca en la página indexada. |
+| Síndrome coronario agudo | Cap. 26 | 214 | 214 | 239 | Auditado | El arranque conceptual está en la página indexada; el rótulo del capítulo aparece a continuación. |
+| Dolor abdominal agudo | Cap. 50 | 340 | 340 | 365 | Auditado | El contenido arranca en la página indexada. |
+| Náuseas, vómitos y diarrea | Cap. 51 | 358 | 358 | 383 | Auditado | Sin discrepancia. |
+| Coma | Cap. 62 | 428 | 428 | 453 | Auditado | El arranque conceptual está en la página indexada; el rótulo del capítulo aparece en la siguiente. |
+| Crisis epilépticas | Cap. 63 | 435 | 435 | 460 | Auditado | Sin discrepancia. |
+| Ictus | Cap. 64 | 442 | 442 | 467 | Auditado | El arranque conceptual está en la página indexada; el rótulo del capítulo aparece en la siguiente. |
+| Sepsis | Cap. 107 | 640 | 640 | 665 | Auditado | Sin discrepancia. |
+
+## Bitácora del proyecto
+
+| Fecha | Cambio realizado | Sección afectada | Breve explicación |
+| --- | --- | --- | --- |
+| 2026-04-05 | Montaje base del proyecto | Base técnica | Se creó la app con `Vite + React + Tailwind` y se dejó lista para build estático. |
+| 2026-04-05 | Preparación de despliegue | Infraestructura | Se configuró publicación continua en GitHub Pages. |
+| 2026-04-05 | Revisión de jerarquía visual | Home / shell | Se compactó la interfaz y se eliminó parte del aspecto de demo o dashboard genérico. |
+| 2026-04-05 | Auditoría bibliográfica inicial | Bibliografía / datos | Se separaron `página índice`, `página real` y `página PDF` para no enlazar capítulos de forma errónea. |
+| 2026-04-05 | Simplificación de la home | Home | Se rebajó el peso visual del libro y se dejó la bibliografía accesible sin dominar la interfaz. |
+| 2026-04-05 | Construcción del primer protocolo real | Protocolos | Se creó el módulo clínico de `fibrilación auricular`. |
+| 2026-04-05 | Integración de cálculos del protocolo | Protocolos / cálculos | Se implementaron `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault` y se enlazaron al flujo FA. |
+| 2026-04-05 | Creación de fichas farmacológicas | Medicamentos | Se añadieron fichas completas del módulo FA con base principal en `CIMA AEMPS`. |
+| 2026-04-05 | Ajuste de navegación móvil | Protocolo FA / shell | Se redujo el scroll, se compactaron bloques y se evitó desbordamiento horizontal. |
+| 2026-04-05 | Primera bitácora del proyecto | README | Se documentó la evolución por fases para evitar que el repositorio quedara sin trazabilidad funcional. |
+| 2026-04-05 | Reestructuración del README como documento vivo | README | Se rehízo el `README` para reflejar arquitectura, índice funcional, bibliografía y pendientes reales. |
+
+## Pendiente
+
+### Pendiente funcional
+
+- Construir el siguiente protocolo real a partir de los temas ya auditados.
+- Hacer que la búsqueda evolucione de filtro simple a entrada clínica más útil.
+- Ampliar `Medicamentos` más allá del módulo de fibrilación auricular.
+- Mantener la regla de no implementar cálculos fuera de contexto de módulo.
+
+### Pendiente clínico
+
+- Desarrollar protocolos reales para `ictus`, `sepsis`, `shock` o `síndrome coronario agudo`.
+- Mantener en cada nuevo protocolo la misma conexión entre decisión clínica, cálculos, medicación y bibliografía.
+- Evitar siempre que la interfaz prometa una funcionalidad aún no implementada.
+
+### Pendiente bibliográfico
+
+- Incorporar al repo la nueva bibliografía específica de radiología cuando exista realmente en el workspace.
+- Indexar esa nueva fuente con páginas verificadas, no asumidas.
+- Completar la plantilla `RX tórax sistemática` solo cuando la fuente radiológica esté disponible y auditada.
 
 ## Requisitos
 
@@ -46,211 +296,3 @@ git push origin main
 ```
 
 GitHub Actions compila y publica automáticamente la rama `main`.
-
-## Bitácora
-
-### Fase 1 · Base del proyecto
-
-- Se montó la app estática con `Vite + React + Tailwind`.
-- Se preparó el despliegue en `GitHub Pages`.
-- Se dejó el repo listo para build y publicación continua.
-
-### Fase 2 · Limpieza visual y home
-
-- Se redujo la home para evitar aspecto de demo o dashboard genérico.
-- Se rebajó el peso visual de la bibliografía y de la marca repetida.
-- Se dejó una única dirección visual sobria y más compacta.
-
-### Fase 3 · Auditoría bibliográfica
-
-- Se auditó la obra base `Murillo 7.ª ed.`.
-- Se separó `página índice`, `página libro` y `página PDF`.
-- Se construyó el índice maestro de temas y cálculos reales detectados en la bibliografía.
-- Se dejó constancia de que la nueva bibliografía específica de radiología no está en este workspace.
-
-### Fase 4 · Primer contenido clínico real
-
-- Se construyó el primer protocolo real: `fibrilación auricular`.
-- Se integraron tres cálculos útiles para ese flujo: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
-- Se construyeron fichas farmacológicas enlazadas al protocolo.
-- Se usó `CIMA AEMPS` como fuente farmacológica principal y el capítulo 23 del Murillo como base contextual del protocolo.
-
-## Estructura real de la app
-
-### Flujo funcional actual
-
-- `Home`
-- `Motivo de consulta`
-- `Protocolo activo de fibrilación auricular`
-- `Cálculos`
-- `Medicamentos`
-- `Bibliografía`
-
-### Estructura técnica
-
-- `src/App.jsx`
-  - interfaz principal
-  - navegación contextual entre home, protocolo, cálculos y medicamentos
-  - retorno al contexto de origen desde cálculo o fármaco
-
-- `src/data/bibliography.js`
-  - catálogo bibliográfico
-  - generación de enlaces al PDF
-  - estructura común de referencias
-
-- `src/data/modules.js`
-  - módulos auditados para `Motivo de consulta`
-  - actividad reciente
-  - bibliografía base usada
-  - índice clínico auditado
-
-- `src/data/protocols.js`
-  - protocolos clínicos reales
-  - en esta fase contiene `fibrilación auricular`
-
-- `src/data/calculators.js`
-  - auditoría de cálculos y escalas
-  - lógica activa de `CHA2DS2-VASc`
-  - lógica activa de `HAS-BLED`
-  - lógica activa de `Cockcroft-Gault`
-
-- `src/data/medications.js`
-  - fichas farmacológicas del protocolo activo
-  - dosis, vía, frecuencia, duración
-  - contraindicaciones y ajustes por IR / IH
-  - fuentes CIMA y referencia contextual del protocolo
-
-- `src/data/imageTemplates.js`
-  - índice de plantillas de imagen
-  - primera plantilla preparada: `RX tórax sistemática`
-
-- `public/biblio/urgencias-murillo-7ma.pdf`
-  - obra base activa usada por la app
-
-### Qué está realmente activo hoy
-
-- Home compacta
-- Protocolo de fibrilación auricular
-- Cálculos de FA
-- Fichas farmacológicas de FA
-- Índice maestro auditado en este `README`
-
-## Pendiente
-
-### Pendiente funcional
-
-- Construir el siguiente protocolo real a partir de los temas ya auditados.
-- Ampliar `Medicamentos` más allá del módulo de fibrilación auricular.
-- Implementar nuevos cálculos solo cuando se active su módulo clínico correspondiente.
-- Mejorar la búsqueda para que no sea solo una entrada de navegación sino también una entrada clínica más útil.
-
-### Pendiente bibliográfico
-
-- Subir la bibliografía específica de radiología al repo.
-- Indexar esa nueva fuente una vez esté realmente disponible.
-- Completar la plantilla `RX tórax sistemática` con base radiológica real verificada.
-
-### Pendiente clínico
-
-- Desarrollar protocolos reales para temas ya auditados como `ictus`, `sepsis`, `shock` o `síndrome coronario agudo`.
-- Mantener la misma arquitectura conectada entre protocolo, cálculos, medicamentos y bibliografía.
-- Seguir separando con claridad lo que proviene del libro y lo que proviene de `CIMA AEMPS`.
-
-## Índice maestro del proyecto
-
-### Convención de páginas
-
-- `Página índice`: numeración mostrada en el índice de capítulos.
-- `Página libro`: numeración impresa verificada sobre el contenido real.
-- `Página PDF`: página física del archivo usada para enlaces `#page=`.
-
-### Bibliografía base usada
-
-| Fuente | Ubicación | Estado | Observaciones |
-| --- | --- | --- | --- |
-| *Medicina de urgencias y emergencias. Guía diagnóstica y protocolos de actuación, 7.ª edición* | `public/biblio/urgencias-murillo-7ma.pdf` | Activa | Obra base auditada y utilizada por la app. |
-| Bibliografía específica de radiología | No detectada en este workspace | No disponible en workspace | En esta fecha no hay un nuevo PDF de radiología dentro del repositorio. Por eso no se ha indexado una segunda fuente radiológica real. |
-
-### Patologías / temas auditados
-
-| Tema | Capítulo | Página índice | Página real verificada | Página PDF | Estado | Observaciones |
-| --- | --- | ---: | ---: | ---: | --- | --- |
-| Fibrilación y flúter auriculares | Cap. 23 | 184 | 185 | 210 | Implementado | El índice adelanta el capítulo una página; el arranque útil real está en p. 185. |
-| Soporte vital básico en adultos | Cap. 1 | 2 | 2 | 27 | Auditado | Sin discrepancia. |
-| Soporte vital avanzado en adultos | Cap. 2 | 7 | 7 | 32 | Auditado | Sin discrepancia. |
-| Gasometría, pulsioximetría y capnografía | Cap. 8 | 64 | 64 | 89 | Auditado | Sin discrepancia. |
-| Electrocardiografía de urgencias | Cap. 9 | 71 | 71 | 96 | Auditado | Sin discrepancia. |
-| Radiografía de tórax | Cap. 10 | 83 | 83 | 108 | Auditado | Sin discrepancia. |
-| Ecografía | Cap. 12 | 108 | 108 | 133 | Auditado | Sin discrepancia. |
-| Shock | Cap. 18 | 154 | 154 | 179 | Auditado | El arranque conceptual está en la página indexada; el rótulo se repite en la siguiente. |
-| Insuficiencia cardíaca | Cap. 19 | 161 | 161 | 186 | Auditado | Sin discrepancia. |
-| Dolor torácico agudo | Cap. 25 | 207 | 207 | 232 | Auditado | El contenido arranca en la página indexada. |
-| Síndrome coronario agudo | Cap. 26 | 214 | 214 | 239 | Auditado | El rótulo del capítulo aparece a continuación del arranque conceptual. |
-| Dolor abdominal agudo | Cap. 50 | 340 | 340 | 365 | Auditado | El contenido arranca en la página indexada. |
-| Náuseas, vómitos y diarrea | Cap. 51 | 358 | 358 | 383 | Auditado | Sin discrepancia. |
-| Coma | Cap. 62 | 428 | 428 | 453 | Auditado | El rótulo del capítulo aparece en la página siguiente al arranque conceptual. |
-| Crisis epilépticas | Cap. 63 | 435 | 435 | 460 | Auditado | Sin discrepancia. |
-| Ictus | Cap. 64 | 442 | 442 | 467 | Auditado | El rótulo del capítulo aparece en la página siguiente al arranque conceptual. |
-| Sepsis | Cap. 107 | 640 | 640 | 665 | Auditado | Sin discrepancia. |
-
-### Cálculos / escalas auditados
-
-| Cálculo / escala | Bloque clínico | Página libro verificada | Página PDF | Estado | Observaciones |
-| --- | --- | ---: | ---: | --- | --- |
-| Aclaramiento de creatinina (Cockcroft-Gault) | Cap. 5 · Bioquímica sanguínea | 39 | 64 | Implementado | Se usa ya para revisar ajuste renal de anticoagulantes en FA. |
-| CHA2DS2-VASc | Cap. 23 · Fibrilación y flúter auriculares | 189 | 214 | Implementado | Integrado en el protocolo real de FA. |
-| HAS-BLED | Cap. 23 · Fibrilación y flúter auriculares | 190 | 215 | Implementado | Integrado en el protocolo real de FA. |
-| TFG estimado (CKD-EPI) | Cap. 5 · Bioquímica sanguínea | 39 | 64 | Pendiente | Auditado pero no necesario aún para el primer protocolo. |
-| Diferencia alveoloarterial de O2 (∆AaPO2) | Cap. 8 · Gasometría, pulsioximetría y capnografía | 66 | 91 | Pendiente | Queda fuera del primer módulo real. |
-| GRACE | Cap. 26 · Síndrome coronario agudo | 220 | 245 | Pendiente | Escala explícita en tabla. |
-| Clase Killip | Cap. 26 · Síndrome coronario agudo | 220 | 245 | Pendiente | Clasificación de gravedad del mismo bloque. |
-| Escala de Alvarado modificada | Cap. 50 · Dolor abdominal agudo | 349 | 374 | Pendiente | Referida en el diagnóstico diferencial. |
-| Escala de coma de Glasgow | Cap. 62 · Coma | 429 | 454 | Pendiente | Escala explícita para nivel de conciencia. |
-| NIHSS | Cap. 64 · Ictus | 446 | 471 | Pendiente | Tabla de valoración neurológica. |
-| Escala de Rankin modificada | Cap. 64 · Ictus | 442 | 467 | Pendiente | Criterio funcional en ictus. |
-| Escala de Cincinnati | Cap. 64 · Ictus | 446 | 471 | Pendiente | Escala extrahospitalaria citada en Código Ictus. |
-| qSOFA / SOFA | Cap. 107 · Sepsis | 640 | 665 | Pendiente | Escalas de sospecha y valoración del riesgo. |
-| Modelo de Wells para TVP | Cap. 36 · Enfermedad tromboembólica venosa | 261 | 286 | No aplicable por ahora | Detectado en tabla; pendiente de módulo específico. |
-| Modelo de Wells para TEP | Cap. 39 · Tromboembolia pulmonar | 278 | 303 | No aplicable por ahora | Fuera del alcance actual. |
-| PESI / sPESI | Cap. 39 · Tromboembolia pulmonar | 281 | 306 | No aplicable por ahora | Pendiente de módulo específico. |
-| Glasgow-Blatchford | Cap. 48 · Hemorragia digestiva alta | 329 | 354 | No aplicable por ahora | Pendiente de módulo específico. |
-
-### Plantillas de imagen
-
-| Plantilla | Bibliografía base | Ubicación real | Estado | Observaciones |
-| --- | --- | --- | --- | --- |
-| RX tórax sistemática | Murillo 7.ª ed. · Cap. 10 Radiografía de tórax | `src/data/imageTemplates.js` | En desarrollo | Solo existe la estructura de plantilla. No se ha completado una secuencia diagnóstica porque la bibliografía específica de radiología no está todavía en este repo. |
-
-### Primer protocolo real activo
-
-`Fibrilación auricular` conecta ya cuatro capas del proyecto:
-
-- protocolo clínico
-- cálculos integrados y también accesibles desde `Cálculos`
-- fichas farmacológicas accesibles desde `Medicamentos`
-- bibliografía enlazada al punto real del libro
-
-### Fichas farmacológicas activas
-
-Las fichas activas del módulo de FA se apoyan en `CIMA AEMPS` como fuente farmacológica principal y separan:
-
-- uso contextual dentro del protocolo de FA
-- contraindicaciones y precauciones
-- ajuste por insuficiencia renal
-- ajuste por insuficiencia hepática
-- enlace a la ficha técnica consultada
-
-## Modelo bibliográfico usado por el proyecto
-
-Cada entrada bibliográfica del proyecto guarda:
-
-- `referenceId`
-- `filePath`
-- `indexPages`
-- `verifiedPages`
-- `pdfPages`
-- `href`
-- `internalId`
-- `note`
-
-La app prioriza `verifiedPages` para mostrar la ubicación real en el libro y usa `pdfPages` solo para construir el enlace exacto al PDF cuando hace falta.
