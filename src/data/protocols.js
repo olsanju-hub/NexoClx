@@ -21,64 +21,66 @@ export const protocolCatalog = {
     verifiedPage: 185,
     pdfPage: 210,
     status: 'implementado',
-    summary:
-      'El manejo urgente depende de la estabilidad hemodinámica, la respuesta ventricular, la duración del episodio y la indicación de anticoagulación.',
-    overview: [
-      'Confirmar la arritmia con ECG de 12 derivaciones y tira de ritmo de al menos 30 s.',
-      'Buscar inestabilidad hemodinámica, insuficiencia cardíaca, cardiopatía estructural significativa y duración del episodio.',
-      'Pedir creatinina y coagulación si la anticoagulación forma parte de la decisión inmediata.',
+    summary: 'Decidir por estabilidad, duración del episodio y necesidad de anticoagulación.',
+    quickChecks: [
+      'ECG y tira de ritmo',
+      'Estable o inestable',
+      'Duración: < 48 h, > 48 h o desconocida',
+      'Creatinina y coagulación si cambia la decisión terapéutica',
     ],
-    flow: [
+    quickSummary: [
       {
         id: 'inestable',
-        title: 'Paciente inestable',
-        description:
-          'Shock cardiogénico, edema agudo de pulmón, síndrome coronario agudo o mala tolerancia grave.',
-        actions: [
-          'Aplicar medidas generales: vía venosa, oxígeno si SpO2 < 90 %, monitorización continua y presión arterial seriada.',
-          'Si la FA rápida dura menos de 48 h y no se consigue el objetivo con fármacos, realizar cardioversión eléctrica urgente.',
-          'Si la duración es mayor de 48 h o desconocida, iniciar anticoagulación terapéutica y valorar ecocardiografía transesofágica antes de cardioversión.',
-        ],
+        title: 'Inestable',
+        action: 'Cardioversión urgente o anticoagulación + ETE según duración.',
       },
       {
-        id: 'rapida-menor-48',
-        title: 'FA rápida < 48 h y estable',
-        description:
-          'La prioridad es controlar frecuencia antes de decidir el control del ritmo.',
-        actions: [
-          'Sin insuficiencia cardíaca: metoprolol o verapamilo; si no son opción, digoxina; amiodarona como última opción aguda.',
-          'Con insuficiencia cardíaca: digoxina; si no basta o no es viable, valorar amiodarona.',
-          'Tras estabilizar la frecuencia, decidir cardioversión y duración de la anticoagulación según riesgo embólico y duración real del episodio.',
-        ],
+        id: 'lt48',
+        title: 'Estable < 48 h',
+        action: 'Controlar frecuencia primero. Valorar ritmo y anticoagulación posterior.',
       },
       {
-        id: 'rapida-mayor-48',
-        title: 'FA rápida > 48 h o de duración desconocida',
-        description:
-          'Control de frecuencia y estrategia de anticoagulación antes de cardioversión electiva o guiada por eco transesofágica.',
-        actions: [
-          'Controlar la frecuencia con el mismo esquema que en FA rápida < 48 h.',
-          'Si no hay estenosis mitral moderada/grave ni prótesis mecánica, valorar ACOD; si las hay, orientar a AVK.',
-          'Usar CHA2DS2-VASc y HAS-BLED para decidir anticoagulación crónica y el nivel de control posterior.',
-        ],
+        id: 'gt48',
+        title: '> 48 h / desconocida',
+        action: 'Frecuencia primero. Anticoagulación antes de cardioversión.',
       },
       {
-        id: 'lenta-o-normal',
-        title: 'FA lenta o respuesta ventricular 60-100 lat/min',
-        description:
-          'No suele exigir cardioversión urgente salvo síntomas o inestabilidad por otra causa.',
-        actions: [
-          'Si la frecuencia es menor de 40 lat/min o hay pausas > 3 s, manejar como bradiarritmia.',
-          'Si la frecuencia es normal y la clínica no obliga a intervenir, centrar la decisión en anticoagulación y causa desencadenante.',
-          'En FA permanente o aceptada, la prioridad urgente suele ser la frecuencia y el riesgo tromboembólico, no la cardioversión.',
-        ],
+        id: 'always',
+        title: 'Siempre',
+        action: 'Revisar CHA2DS2-VASc, HAS-BLED y función renal si vas a anticoagular.',
+      },
+    ],
+    decisionCards: [
+      {
+        id: 'inestable',
+        situation: 'FA con inestabilidad hemodinámica',
+        action: 'Medidas generales y cardioversión eléctrica urgente si la FA rápida es < 48 h o fracasa el tratamiento farmacológico.',
+        nuance: 'Si dura > 48 h o es desconocida, anticoagulación terapéutica y valorar ecocardiografía transesofágica antes de cardioversión.',
+      },
+      {
+        id: 'lt48',
+        situation: 'FA rápida, estable, < 48 h',
+        action: 'Controlar primero la frecuencia. Sin insuficiencia cardíaca: metoprolol o verapamilo; con insuficiencia cardíaca: digoxina; amiodarona como rescate agudo.',
+        nuance: 'Tras controlar frecuencia, valorar cardioversión y si hace falta anticoagulación de 4 semanas según duración y riesgo.',
+      },
+      {
+        id: 'gt48',
+        situation: 'FA rápida, estable, > 48 h o de duración desconocida',
+        action: 'Control de frecuencia y estrategia anticoagulante antes de cardioversión.',
+        nuance: 'Sin estenosis mitral moderada/grave ni prótesis mecánica, pensar en ACOD; si existen, orientar a AVK.',
+      },
+      {
+        id: 'slow-normal',
+        situation: 'FA lenta o frecuencia 60-100 lat/min',
+        action: 'Si no hay síntomas relevantes, priorizar causa desencadenante y necesidad de anticoagulación.',
+        nuance: 'Si la frecuencia es < 40 lat/min o hay pausas > 3 s, manejar como bradiarritmia.',
       },
     ],
     warnings: [
       'No combinar de entrada betabloqueante con verapamilo o diltiazem.',
-      'La asociación digoxina + verapamilo puede elevar los niveles de digoxina.',
-      'HAS-BLED ≥ 3 no contraindica por sí mismo la anticoagulación; obliga a control más estrecho.',
-      'En FA con estenosis mitral moderada/grave o prótesis valvular mecánica, el capítulo orienta a AVK.',
+      'Digoxina + verapamilo puede elevar niveles de digoxina.',
+      'HAS-BLED ≥ 3 no contraindica por sí mismo anticoagular; obliga a control más estrecho.',
+      'Con estenosis mitral moderada/grave o prótesis mecánica, el capítulo orienta a AVK.',
     ],
     calculatorIds: ['cha2ds2-vasc', 'has-bled', 'cockcroft-gault'],
     medicationGroups: [

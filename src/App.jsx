@@ -79,6 +79,23 @@ const compactMedicationPreview = medicationGroups.map((group) => ({
 }));
 
 const formatReference = (item) => `${item.chapter} · p. ${item.verifiedPage}`;
+const compactSentence = (value) => value.split('. ')[0]?.trim() ?? value;
+
+const getCalculatorResult = (calculatorId, values) => {
+  if (calculatorId === 'cha2ds2-vasc') {
+    return calculateCha2ds2Vasc(values);
+  }
+
+  if (calculatorId === 'has-bled') {
+    return calculateHasBled(values);
+  }
+
+  if (calculatorId === 'cockcroft-gault') {
+    return calculateCockcroftGault(values);
+  }
+
+  return null;
+};
 
 const openPdf = (href) => {
   window.open(href, '_blank', 'noopener,noreferrer');
@@ -163,6 +180,85 @@ const DetailPanel = ({ title, children }) => (
     <SectionTitle title={title} />
     {children}
   </section>
+);
+
+const ProtocolSectionButton = ({ label, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+      active
+        ? 'bg-slate-950 text-white'
+        : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950'
+    }`}
+  >
+    {label}
+  </button>
+);
+
+const QuickSummaryCard = ({ title, action }) => (
+  <div className={`${mutedSurfaceClass} p-3`}>
+    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">{title}</p>
+    <p className="mt-2 text-sm font-medium leading-snug text-slate-900">{action}</p>
+  </div>
+);
+
+const DecisionCard = ({ card }) => (
+  <section className={`${mutedSurfaceClass} p-4`}>
+    <div className="rounded-[0.9rem] border border-slate-200 bg-white px-3 py-2.5">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Situación</p>
+      <p className="mt-1 text-sm font-medium text-slate-900">{card.situation}</p>
+    </div>
+    <div className="mt-2 rounded-[0.9rem] border border-slate-200 bg-white px-3 py-2.5">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-sky-700">Qué hacer</p>
+      <p className="mt-1 text-sm text-slate-800">{card.action}</p>
+    </div>
+    <div className="mt-2 rounded-[0.9rem] border border-slate-200 bg-white px-3 py-2.5">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Matiz</p>
+      <p className="mt-1 text-sm text-slate-700">{card.nuance}</p>
+    </div>
+  </section>
+);
+
+const MedicationQuickRow = ({ medication, onOpen }) => (
+  <button
+    type="button"
+    onClick={onOpen}
+    className="group flex w-full items-center justify-between gap-3 rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50"
+  >
+    <div className="min-w-0">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-semibold text-slate-900">{medication.name}</p>
+        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+          {medication.family}
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-slate-600">{compactSentence(medication.indication)}</p>
+      <p className="mt-1 text-xs text-slate-500">{compactSentence(medication.dose)}</p>
+    </div>
+    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
+  </button>
+);
+
+const CalculatorQuickRow = ({ calculator, result, isOpen, onToggle, onOpenDetail }) => (
+  <div className={`${mutedSurfaceClass} p-3`}>
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-slate-900">{calculator.title}</p>
+        <p className="mt-1 text-xs text-slate-500">
+          {result ? `${result.value} ${result.unit} · ${result.interpretation}` : calculator.summary}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={onToggle} className={subtleButtonClass}>
+          {isOpen ? 'Cerrar' : 'Rápido'}
+        </button>
+        <button type="button" onClick={onOpenDetail} className={subtleButtonClass}>
+          Abrir
+        </button>
+      </div>
+    </div>
+  </div>
 );
 
 const BibliographyBlock = ({ entries }) => (
@@ -294,16 +390,7 @@ const CalculatorResult = ({ result }) =>
 const CalculatorPanel = ({ calculatorId, values, onChange, onOpenDetail, compact = false }) => {
   const calculator = getCalculator(calculatorId);
   const wrapperClass = compact ? `${mutedSurfaceClass} p-4` : `${surfaceClass} p-5`;
-
-  let result = null;
-
-  if (calculatorId === 'cha2ds2-vasc') {
-    result = calculateCha2ds2Vasc(values);
-  } else if (calculatorId === 'has-bled') {
-    result = calculateHasBled(values);
-  } else if (calculatorId === 'cockcroft-gault') {
-    result = calculateCockcroftGault(values);
-  }
+  const result = getCalculatorResult(calculatorId, values);
 
   return (
     <section className={wrapperClass}>
@@ -688,136 +775,180 @@ const AuditView = ({ module, onBack }) => (
 
 const ProtocolView = ({
   protocol,
+  initialSection = 'decision',
   calculatorInputs,
   onCalculatorChange,
   onCalculatorOpen,
   onMedicationOpen,
-  onCalculationsOpen,
-  onMedicationsOpen,
   onBack,
-}) => (
-  <div className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8">
-    <BackBar
-      label="Volver"
-      onClick={onBack}
-      actions={
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onCalculationsOpen} className={subtleButtonClass}>
-            <Calculator className="h-4 w-4" />
-            Cálculos
-          </button>
-          <button type="button" onClick={onMedicationsOpen} className={subtleButtonClass}>
-            <Pill className="h-4 w-4" />
-            Medicamentos
-          </button>
-        </div>
-      }
-    />
+}) => {
+  const [activeSection, setActiveSection] = useState(initialSection);
+  const [openMiniCalculator, setOpenMiniCalculator] = useState(null);
+  const sourceEntry = protocol.bibliography[0];
 
-    <section className={`${surfaceClass} p-6`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge tone="active">Activo</StatusBadge>
-        <span className="text-sm text-slate-500">
-          {protocol.chapter} · índice p. {protocol.indexPage} · inicio real p. {protocol.verifiedPage}
-        </span>
-      </div>
-      <h1 className="mt-3 text-[2rem] font-semibold tracking-tight text-slate-950">{protocol.title}</h1>
-      <p className="mt-3 max-w-3xl text-sm text-slate-600">{protocol.summary}</p>
-    </section>
+  return (
+    <div className="mx-auto max-w-5xl px-5 pb-16 pt-28 sm:px-8">
+      <BackBar label="Volver" onClick={onBack} />
 
-    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)]">
-      <div className="space-y-4">
-        <DetailPanel title="Evaluación inicial">
-          <div className="space-y-3">
-            {protocol.overview.map((item) => (
-              <div key={item} className={`${mutedSurfaceClass} p-4 text-sm text-slate-700`}>
-                {item}
-              </div>
-            ))}
+      <section className={`${surfaceClass} p-5 sm:p-6`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge tone="active">Activo</StatusBadge>
+              <span className="text-sm text-slate-500">
+                {protocol.chapter} · p. {protocol.verifiedPage}
+              </span>
+            </div>
+            <h1 className="mt-3 text-[1.85rem] font-semibold tracking-tight text-slate-950 sm:text-[2.1rem]">
+              {protocol.title}
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">{protocol.summary}</p>
           </div>
-        </DetailPanel>
 
-        <DetailPanel title="Decisión clínica">
-          <div className="space-y-3">
-            {protocol.flow.map((step) => (
-              <section key={step.id} className={`${mutedSurfaceClass} p-4`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold tracking-tight text-slate-950">{step.title}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{step.description}</p>
+          {sourceEntry?.href ? (
+            <a href={sourceEntry.href} target="_blank" rel="noreferrer" className={subtleButtonClass}>
+              Abrir página FA
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          ) : null}
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {protocol.quickSummary.map((item) => (
+            <QuickSummaryCard key={item.id} title={item.title} action={item.action} />
+          ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {protocol.quickChecks.map((item) => (
+            <span
+              key={item}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <ProtocolSectionButton
+            label="Decisión"
+            active={activeSection === 'decision'}
+            onClick={() => setActiveSection('decision')}
+          />
+          <ProtocolSectionButton
+            label="Cálculos"
+            active={activeSection === 'calculos'}
+            onClick={() => setActiveSection('calculos')}
+          />
+          <ProtocolSectionButton
+            label="Medicación"
+            active={activeSection === 'medicacion'}
+            onClick={() => setActiveSection('medicacion')}
+          />
+          <ProtocolSectionButton
+            label="Seguridad"
+            active={activeSection === 'seguridad'}
+            onClick={() => setActiveSection('seguridad')}
+          />
+        </div>
+      </section>
+
+      <div className="mt-4">
+        {activeSection === 'decision' ? (
+          <DetailPanel title="Decisión rápida">
+            <div className="grid gap-3 lg:grid-cols-2">
+              {protocol.decisionCards.map((card) => (
+                <DecisionCard key={card.id} card={card} />
+              ))}
+            </div>
+          </DetailPanel>
+        ) : null}
+
+        {activeSection === 'calculos' ? (
+          <DetailPanel title="Cálculos del protocolo">
+            <div className="space-y-3">
+              {protocol.calculatorIds.map((calculatorId) => {
+                const calculator = getCalculator(calculatorId);
+                const result = getCalculatorResult(calculatorId, calculatorInputs[calculatorId]);
+                const isOpen = openMiniCalculator === calculatorId;
+
+                return (
+                  <div key={calculatorId} className="space-y-2">
+                    <CalculatorQuickRow
+                      calculator={calculator}
+                      result={result}
+                      isOpen={isOpen}
+                      onToggle={() => setOpenMiniCalculator((current) => (current === calculatorId ? null : calculatorId))}
+                      onOpenDetail={() => onCalculatorOpen(calculatorId, 'calculos')}
+                    />
+                    {isOpen ? (
+                      <CalculatorPanel
+                        calculatorId={calculatorId}
+                        values={calculatorInputs[calculatorId]}
+                        onChange={(field, value) => onCalculatorChange(calculatorId, field, value)}
+                        compact
+                      />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </DetailPanel>
+        ) : null}
+
+        {activeSection === 'medicacion' ? (
+          <DetailPanel title="Medicación útil en FA">
+            <div className="space-y-4">
+              {protocol.medicationGroups.map((group) => (
+                <div key={group.title}>
+                  <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    {group.title}
+                  </p>
+                  <div className="space-y-2">
+                    {group.medicationIds.map((medicationId) => {
+                      const medication = getMedication(medicationId);
+                      return (
+                        <MedicationQuickRow
+                          key={medication.id}
+                          medication={medication}
+                          onOpen={() => onMedicationOpen(medication.id, 'medicacion')}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="mt-3 space-y-2">
-                  {step.actions.map((action) => (
-                    <div key={action} className="rounded-[0.9rem] border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700">
-                      {action}
-                    </div>
-                  ))}
+              ))}
+            </div>
+          </DetailPanel>
+        ) : null}
+
+        {activeSection === 'seguridad' ? (
+          <DetailPanel title="Puntos críticos">
+            <div className="space-y-2">
+              {protocol.warnings.map((warning) => (
+                <div key={warning} className={`${mutedSurfaceClass} p-4 text-sm text-slate-700`}>
+                  {warning}
                 </div>
-              </section>
-            ))}
-          </div>
-        </DetailPanel>
-
-        <DetailPanel title="Cálculos del protocolo">
-          <div className="space-y-3">
-            {protocol.calculatorIds.map((calculatorId) => (
-              <CalculatorPanel
-                key={calculatorId}
-                calculatorId={calculatorId}
-                values={calculatorInputs[calculatorId]}
-                onChange={(field, value) => onCalculatorChange(calculatorId, field, value)}
-                onOpenDetail={() => onCalculatorOpen(calculatorId)}
-                compact
-              />
-            ))}
-          </div>
-        </DetailPanel>
-      </div>
-
-      <div className="space-y-4">
-        <DetailPanel title="Medicamentos vinculados">
-          <div className="space-y-4">
-            {protocol.medicationGroups.map((group) => (
-              <div key={group.title}>
-                <p className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  {group.title}
-                </p>
-                <div className="space-y-2">
-                  {group.medicationIds.map((medicationId) => {
-                    const medication = getMedication(medicationId);
-                    return (
-                      <SurfaceLinkRow
-                        key={medication.id}
-                        title={medication.name}
-                        meta={medication.indication}
-                        onClick={() => onMedicationOpen(medication.id)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </DetailPanel>
-
-        <DetailPanel title="Puntos de seguridad">
-          <div className="space-y-2">
-            {protocol.warnings.map((warning) => (
-              <div key={warning} className={`${mutedSurfaceClass} p-4 text-sm text-slate-700`}>
-                {warning}
-              </div>
-            ))}
-          </div>
-        </DetailPanel>
+              ))}
+              {sourceEntry?.href ? (
+                <a
+                  href={sourceEntry.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-3 rounded-[1rem] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+                >
+                  <span>Ver fuente FA</span>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-300" />
+                </a>
+              ) : null}
+            </div>
+          </DetailPanel>
+        ) : null}
       </div>
     </div>
-
-    <div className="mt-4">
-      <BibliographyBlock entries={protocol.bibliography} />
-    </div>
-  </div>
-);
+  );
+};
 
 const CalculationsView = ({ onBack, onCalculatorOpen }) => (
   <div className="mx-auto max-w-6xl px-5 pb-16 pt-28 sm:px-8">
@@ -1059,7 +1190,7 @@ const App = () => {
       navigate({
         view: 'calculator',
         calculatorId: target.id,
-        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular' },
+        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular', section: 'calculos' },
       });
       return;
     }
@@ -1068,7 +1199,7 @@ const App = () => {
       navigate({
         view: 'medication',
         medicationId: target.id,
-        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular' },
+        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular', section: 'medicacion' },
       });
     }
   };
@@ -1103,18 +1234,25 @@ const App = () => {
       return (
         <ProtocolView
           protocol={protocol}
+          initialSection={route.section ?? 'decision'}
           calculatorInputs={calculatorInputs}
           onCalculatorChange={(calculatorId, field, value) =>
             updateNestedState(setCalculatorInputs, calculatorId, field, value)
           }
-          onCalculatorOpen={(calculatorId) =>
-            openCalculator(calculatorId, { view: 'protocol', protocolId: 'fibrilacion-auricular' })
+          onCalculatorOpen={(calculatorId, section) =>
+            openCalculator(calculatorId, {
+              view: 'protocol',
+              protocolId: 'fibrilacion-auricular',
+              section: section ?? 'calculos',
+            })
           }
-          onMedicationOpen={(medicationId) =>
-            openMedication(medicationId, { view: 'protocol', protocolId: 'fibrilacion-auricular' })
+          onMedicationOpen={(medicationId, section) =>
+            openMedication(medicationId, {
+              view: 'protocol',
+              protocolId: 'fibrilacion-auricular',
+              section: section ?? 'medicacion',
+            })
           }
-          onCalculationsOpen={() => openCalculations({ view: 'protocol', protocolId: 'fibrilacion-auricular' })}
-          onMedicationsOpen={() => openMedications({ view: 'protocol', protocolId: 'fibrilacion-auricular' })}
           onBack={() => navigate({ view: 'home' })}
         />
       );

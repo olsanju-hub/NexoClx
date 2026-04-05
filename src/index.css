@@ -17,6 +17,7 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
@@ -24,6 +25,7 @@
     min-height: 100vh;
     background: #f3f6f8;
     color: #0f172a;
+    overflow-x: hidden;
   }
 
   body,
@@ -44,6 +46,7 @@
 
   #root {
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   ::selection {
