@@ -1,33 +1,5 @@
 import { bibliographyCatalog, createBibliographyEntry } from './bibliography';
 
-const createModule = ({
-  id,
-  title,
-  category,
-  section,
-  chapter,
-  page,
-  pdfPage,
-  summary,
-  content = [],
-  calculations = [],
-  treatment = [],
-  bibliography = [],
-}) => ({
-  id,
-  title,
-  category,
-  section,
-  chapter,
-  page,
-  pdfPage,
-  summary,
-  content,
-  calculations,
-  treatment,
-  bibliography,
-});
-
 const referenceEntry = ({ id, indexPage, verifiedPage = indexPage, pdfPage, note }) =>
   createBibliographyEntry({
     id,
@@ -38,16 +10,20 @@ const referenceEntry = ({ id, indexPage, verifiedPage = indexPage, pdfPage, note
     note,
   });
 
-export const referenceSections = [
-  'Soporte vital',
-  'Exploraciones complementarias',
-  'Urgencias cardiovasculares',
-  'Urgencias neurológicas',
-  'Urgencias del aparato digestivo',
-  'Infecciones en medicina de urgencias',
-];
+export const coreReference = bibliographyCatalog.murillo7;
 
 export const clinicalIndexAudit = [
+  {
+    id: 'fibrilacion-auricular',
+    title: 'Fibrilación y flúter auriculares',
+    chapter: 'Cap. 23',
+    section: 'Urgencias cardiovasculares',
+    indexPage: 184,
+    verifiedPage: 185,
+    pdfPage: 210,
+    status: 'implementado',
+    note: 'El índice sitúa el capítulo en p. 184, pero el rótulo y el contenido útil arrancan en p. 185.',
+  },
   {
     id: 'svb-adultos',
     title: 'Soporte vital básico en adultos',
@@ -56,6 +32,7 @@ export const clinicalIndexAudit = [
     indexPage: 2,
     verifiedPage: 2,
     pdfPage: 27,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -66,6 +43,7 @@ export const clinicalIndexAudit = [
     indexPage: 7,
     verifiedPage: 7,
     pdfPage: 32,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -76,6 +54,7 @@ export const clinicalIndexAudit = [
     indexPage: 64,
     verifiedPage: 64,
     pdfPage: 89,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -86,6 +65,7 @@ export const clinicalIndexAudit = [
     indexPage: 71,
     verifiedPage: 71,
     pdfPage: 96,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -96,6 +76,7 @@ export const clinicalIndexAudit = [
     indexPage: 83,
     verifiedPage: 83,
     pdfPage: 108,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -106,6 +87,7 @@ export const clinicalIndexAudit = [
     indexPage: 108,
     verifiedPage: 108,
     pdfPage: 133,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -116,6 +98,7 @@ export const clinicalIndexAudit = [
     indexPage: 154,
     verifiedPage: 154,
     pdfPage: 179,
+    status: 'auditado',
     note: 'El arranque conceptual está en la página indexada; el rótulo del capítulo se repite en la siguiente.',
   },
   {
@@ -126,6 +109,7 @@ export const clinicalIndexAudit = [
     indexPage: 161,
     verifiedPage: 161,
     pdfPage: 186,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -136,6 +120,7 @@ export const clinicalIndexAudit = [
     indexPage: 207,
     verifiedPage: 207,
     pdfPage: 232,
+    status: 'auditado',
     note: 'El contenido arranca en la página indexada.',
   },
   {
@@ -146,6 +131,7 @@ export const clinicalIndexAudit = [
     indexPage: 214,
     verifiedPage: 214,
     pdfPage: 239,
+    status: 'auditado',
     note: 'El arranque conceptual está en la página indexada; el rótulo del capítulo aparece a continuación.',
   },
   {
@@ -156,6 +142,7 @@ export const clinicalIndexAudit = [
     indexPage: 340,
     verifiedPage: 340,
     pdfPage: 365,
+    status: 'auditado',
     note: 'El contenido arranca en la página indexada.',
   },
   {
@@ -166,6 +153,7 @@ export const clinicalIndexAudit = [
     indexPage: 358,
     verifiedPage: 358,
     pdfPage: 383,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -176,6 +164,7 @@ export const clinicalIndexAudit = [
     indexPage: 428,
     verifiedPage: 428,
     pdfPage: 453,
+    status: 'auditado',
     note: 'El arranque conceptual está en la página indexada; el rótulo del capítulo aparece en la siguiente.',
   },
   {
@@ -186,6 +175,7 @@ export const clinicalIndexAudit = [
     indexPage: 435,
     verifiedPage: 435,
     pdfPage: 460,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
   {
@@ -196,6 +186,7 @@ export const clinicalIndexAudit = [
     indexPage: 442,
     verifiedPage: 442,
     pdfPage: 467,
+    status: 'auditado',
     note: 'El arranque conceptual está en la página indexada; el rótulo del capítulo aparece en la siguiente.',
   },
   {
@@ -206,202 +197,64 @@ export const clinicalIndexAudit = [
     indexPage: 640,
     verifiedPage: 640,
     pdfPage: 665,
+    status: 'auditado',
     note: 'Sin discrepancia entre índice y arranque real.',
   },
 ];
 
-export const calculationAudit = [
+export const motivoConsultaModules = [
   {
-    id: 'cockcroft-gault',
-    title: 'Aclaramiento de creatinina (Cockcroft-Gault)',
-    chapter: 'Cap. 5 · Bioquímica sanguínea',
-    verifiedPage: 39,
-    pdfPage: 64,
-    status: 'pendiente',
-    note: 'Fórmula citada como estimación útil en urgencias.',
+    id: 'fibrilacion-auricular',
+    title: 'Fibrilación auricular',
+    shortTitle: 'Fibrilación auricular',
+    chapter: 'Cap. 23',
+    section: 'Urgencias cardiovasculares',
+    verifiedPage: 185,
+    pdfPage: 210,
+    status: 'implementado',
+    implemented: true,
+    summary: 'Primer protocolo activo con cálculos y medicación enlazada.',
+    bibliography: [
+      referenceEntry({
+        id: 'fa-start',
+        indexPage: 184,
+        verifiedPage: 185,
+        pdfPage: 210,
+        note: 'Inicio real del capítulo de FA y flúter auriculares.',
+      }),
+    ],
   },
   {
-    id: 'ckd-epi',
-    title: 'TFG estimado (CKD-EPI)',
-    chapter: 'Cap. 5 · Bioquímica sanguínea',
-    verifiedPage: 39,
-    pdfPage: 64,
-    status: 'pendiente',
-    note: 'Se menciona como método de estimación del filtrado glomerular.',
-  },
-  {
-    id: 'aa-po2',
-    title: 'Diferencia alveoloarterial de O2 (∆AaPO2)',
-    chapter: 'Cap. 8 · Gasometría, pulsioximetría y capnografía',
-    verifiedPage: 66,
-    pdfPage: 91,
-    status: 'pendiente',
-    note: 'Incluye fórmula esperada y ecuación del gas alveolar.',
-  },
-  {
-    id: 'cha2ds2-vasc',
-    title: 'CHA2DS2-VASc',
-    chapter: 'Cap. 23 · Fibrilación y flúter auriculares',
-    verifiedPage: 189,
-    pdfPage: 214,
-    status: 'no aplicable por ahora',
-    note: 'Escala citada con uso terapéutico, fuera del alcance actual del producto.',
-  },
-  {
-    id: 'has-bled',
-    title: 'HAS-BLED',
-    chapter: 'Cap. 23 · Fibrilación y flúter auriculares',
-    verifiedPage: 189,
-    pdfPage: 214,
-    status: 'no aplicable por ahora',
-    note: 'Escala hemorrágica asociada al mismo capítulo.',
-  },
-  {
-    id: 'grace',
-    title: 'GRACE',
-    chapter: 'Cap. 26 · Síndrome coronario agudo',
-    verifiedPage: 220,
-    pdfPage: 245,
-    status: 'pendiente',
-    note: 'Tabla de riesgo isquémico explícita.',
-  },
-  {
-    id: 'killip',
-    title: 'Clase Killip',
-    chapter: 'Cap. 26 · Síndrome coronario agudo',
-    verifiedPage: 220,
-    pdfPage: 245,
-    status: 'pendiente',
-    note: 'Clasificación de gravedad usada en el mismo bloque clínico.',
-  },
-  {
-    id: 'wells-tvp',
-    title: 'Modelo de Wells para TVP',
-    chapter: 'Cap. 36 · Enfermedad tromboembólica venosa',
-    verifiedPage: 261,
-    pdfPage: 286,
-    status: 'no aplicable por ahora',
-    note: 'Fuera del alcance de la home y de la primera capa clínica actual.',
-  },
-  {
-    id: 'wells-tep',
-    title: 'Modelo de Wells para TEP',
-    chapter: 'Cap. 39 · Tromboembolia pulmonar',
-    verifiedPage: 278,
-    pdfPage: 303,
-    status: 'no aplicable por ahora',
-    note: 'Escala cuantificable detectada, pendiente de módulo específico.',
-  },
-  {
-    id: 'pesi',
-    title: 'PESI / sPESI',
-    chapter: 'Cap. 39 · Tromboembolia pulmonar',
-    verifiedPage: 281,
-    pdfPage: 306,
-    status: 'no aplicable por ahora',
-    note: 'Herramienta pronóstica de TEP detectada en el capítulo.',
-  },
-  {
-    id: 'glasgow-blatchford',
-    title: 'Glasgow-Blatchford',
-    chapter: 'Cap. 48 · Hemorragia digestiva alta',
-    verifiedPage: 329,
-    pdfPage: 354,
-    status: 'no aplicable por ahora',
-    note: 'Escala validada para estratificación de HDA, fuera del alcance actual.',
-  },
-  {
-    id: 'alvarado',
-    title: 'Escala de Alvarado modificada',
-    chapter: 'Cap. 50 · Dolor abdominal agudo',
-    verifiedPage: 349,
-    pdfPage: 374,
-    status: 'pendiente',
-    note: 'Referida en el diagnóstico diferencial del abdomen agudo.',
-  },
-  {
-    id: 'glasgow',
-    title: 'Escala de coma de Glasgow',
-    chapter: 'Cap. 62 · Coma',
-    verifiedPage: 429,
-    pdfPage: 454,
-    status: 'pendiente',
-    note: 'Escala explícita para valoración del nivel de conciencia.',
-  },
-  {
-    id: 'nihss',
-    title: 'NIHSS',
-    chapter: 'Cap. 64 · Ictus',
-    verifiedPage: 446,
-    pdfPage: 471,
-    status: 'pendiente',
-    note: 'Tabla de valoración neurológica para ictus.',
-  },
-  {
-    id: 'rankin-modificada',
-    title: 'Escala de Rankin modificada',
-    chapter: 'Cap. 64 · Ictus',
-    verifiedPage: 442,
-    pdfPage: 467,
-    status: 'pendiente',
-    note: 'Se usa como criterio funcional en la selección terapéutica del ictus.',
-  },
-  {
-    id: 'cincinnati',
-    title: 'Escala de Cincinnati',
-    chapter: 'Cap. 64 · Ictus',
-    verifiedPage: 446,
-    pdfPage: 471,
-    status: 'pendiente',
-    note: 'Escala extrahospitalaria de sospecha citada en la activación del Código Ictus.',
-  },
-  {
-    id: 'qsofa',
-    title: 'qSOFA / SOFA',
-    chapter: 'Cap. 107 · Sepsis',
-    verifiedPage: 640,
-    pdfPage: 665,
-    status: 'pendiente',
-    note: 'Se proponen ambas escalas para sospecha diagnóstica y valoración del riesgo.',
-  },
-];
-
-export const clinicalModules = [
-  createModule({
     id: 'shock',
     title: 'Shock',
-    category: 'motivo-consulta',
-    section: 'Urgencias cardiovasculares',
+    shortTitle: 'Shock',
     chapter: 'Cap. 18',
-    page: 154,
+    section: 'Urgencias cardiovasculares',
+    verifiedPage: 154,
     pdfPage: 179,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias cardiovasculares' },
-      { label: 'Capítulo', value: 'Cap. 18 · Shock' },
-    ],
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
         id: 'shock-cap18',
         indexPage: 154,
         pdfPage: 179,
-        note: 'Arranque conceptual verificado del módulo.',
+        note: 'Arranque conceptual verificado del capítulo.',
       }),
     ],
-  }),
-  createModule({
+  },
+  {
     id: 'dolor-toracico-agudo',
     title: 'Dolor torácico agudo',
-    category: 'motivo-consulta',
-    section: 'Urgencias cardiovasculares',
+    shortTitle: 'Dolor torácico agudo',
     chapter: 'Cap. 25',
-    page: 207,
+    section: 'Urgencias cardiovasculares',
+    verifiedPage: 207,
     pdfPage: 232,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias cardiovasculares' },
-      { label: 'Capítulo', value: 'Cap. 25 · Dolor torácico agudo' },
-    ],
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
         id: 'dolor-toracico-cap25',
@@ -410,102 +263,18 @@ export const clinicalModules = [
         note: 'Inicio verificado del capítulo base.',
       }),
     ],
-  }),
-  createModule({
-    id: 'sindrome-coronario-agudo',
-    title: 'Síndrome coronario agudo',
-    category: 'motivo-consulta',
-    section: 'Urgencias cardiovasculares',
-    chapter: 'Cap. 26',
-    page: 214,
-    pdfPage: 239,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias cardiovasculares' },
-      { label: 'Capítulo', value: 'Cap. 26 · Síndrome coronario agudo' },
-    ],
-    calculations: [
-      { label: 'Escalas detectadas', value: 'GRACE y Killip' },
-      { label: 'Estado', value: 'Pendiente de implementación' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'sca-cap26',
-        indexPage: 214,
-        pdfPage: 239,
-        note: 'Inicio verificado del capítulo base.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'dolor-abdominal-agudo',
-    title: 'Dolor abdominal agudo',
-    category: 'motivo-consulta',
-    section: 'Urgencias del aparato digestivo',
-    chapter: 'Cap. 50',
-    page: 340,
-    pdfPage: 365,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias del aparato digestivo' },
-      { label: 'Capítulo', value: 'Cap. 50 · Dolor abdominal agudo' },
-    ],
-    calculations: [
-      { label: 'Escala detectada', value: 'Alvarado modificada' },
-      { label: 'Estado', value: 'Pendiente de implementación' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'dolor-abdominal-cap50',
-        indexPage: 340,
-        pdfPage: 365,
-        note: 'Inicio verificado del capítulo base.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'coma',
-    title: 'Coma',
-    category: 'motivo-consulta',
-    section: 'Urgencias neurológicas',
-    chapter: 'Cap. 62',
-    page: 428,
-    pdfPage: 453,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias neurológicas' },
-      { label: 'Capítulo', value: 'Cap. 62 · Coma' },
-    ],
-    calculations: [
-      { label: 'Escala detectada', value: 'Glasgow' },
-      { label: 'Estado', value: 'Pendiente de implementación' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'coma-cap62',
-        indexPage: 428,
-        pdfPage: 453,
-        note: 'Inicio verificado del capítulo base.',
-      }),
-    ],
-  }),
-  createModule({
+  },
+  {
     id: 'ictus',
     title: 'Ictus',
-    category: 'motivo-consulta',
-    section: 'Urgencias neurológicas',
+    shortTitle: 'Ictus',
     chapter: 'Cap. 64',
-    page: 442,
+    section: 'Urgencias neurológicas',
+    verifiedPage: 442,
     pdfPage: 467,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias neurológicas' },
-      { label: 'Capítulo', value: 'Cap. 64 · Ictus' },
-    ],
-    calculations: [
-      { label: 'Escalas detectadas', value: 'Cincinnati, NIHSS y Rankin' },
-      { label: 'Estado', value: 'Pendiente de implementación' },
-    ],
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
         id: 'ictus-cap64',
@@ -514,24 +283,18 @@ export const clinicalModules = [
         note: 'Inicio verificado del capítulo base.',
       }),
     ],
-  }),
-  createModule({
+  },
+  {
     id: 'sepsis',
     title: 'Sepsis',
-    category: 'motivo-consulta',
-    section: 'Infecciones en medicina de urgencias',
+    shortTitle: 'Sepsis',
     chapter: 'Cap. 107',
-    page: 640,
+    section: 'Infecciones en medicina de urgencias',
+    verifiedPage: 640,
     pdfPage: 665,
-    summary: 'Acceso clínico base verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Infecciones en medicina de urgencias' },
-      { label: 'Capítulo', value: 'Cap. 107 · Sepsis' },
-    ],
-    calculations: [
-      { label: 'Escalas detectadas', value: 'SOFA y qSOFA' },
-      { label: 'Estado', value: 'Pendiente de implementación' },
-    ],
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
         id: 'sepsis-cap107',
@@ -540,289 +303,100 @@ export const clinicalModules = [
         note: 'Inicio verificado del capítulo base.',
       }),
     ],
-  }),
-];
-
-export const supportModules = [
-  createModule({
-    id: 'svb-adultos',
-    title: 'Soporte vital básico en adultos',
-    category: 'soporte',
-    section: 'Soporte vital',
-    chapter: 'Cap. 1',
-    page: 2,
-    pdfPage: 27,
-    summary: 'Capítulo de soporte inmediato verificado.',
-    content: [
-      { label: 'Sección', value: 'Soporte vital' },
-      { label: 'Capítulo', value: 'Cap. 1 · Soporte vital básico en adultos' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'svb-cap1',
-        indexPage: 2,
-        pdfPage: 27,
-        note: 'Inicio verificado del capítulo de soporte vital básico.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'sva-adultos',
-    title: 'Soporte vital avanzado en adultos',
-    category: 'soporte',
-    section: 'Soporte vital',
-    chapter: 'Cap. 2',
-    page: 7,
-    pdfPage: 32,
-    summary: 'Capítulo de soporte inmediato verificado.',
-    content: [
-      { label: 'Sección', value: 'Soporte vital' },
-      { label: 'Capítulo', value: 'Cap. 2 · Soporte vital avanzado en adultos' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'sva-cap2',
-        indexPage: 7,
-        pdfPage: 32,
-        note: 'Inicio verificado del capítulo de soporte vital avanzado.',
-      }),
-    ],
-  }),
-];
-
-export const explorationModules = [
-  createModule({
-    id: 'gasometria',
-    title: 'Gasometría, pulsioximetría y capnografía',
-    category: 'exploracion',
-    section: 'Exploraciones complementarias',
-    chapter: 'Cap. 8',
-    page: 64,
-    pdfPage: 89,
-    summary: 'Exploración complementaria verificada.',
-    content: [
-      { label: 'Sección', value: 'Exploraciones complementarias' },
-      { label: 'Capítulo', value: 'Cap. 8 · Gasometría, pulsioximetría y capnografía' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'gasometria-cap8',
-        indexPage: 64,
-        pdfPage: 89,
-        note: 'Inicio verificado del capítulo de exploración.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'ecg-urgencias',
-    title: 'Electrocardiografía de urgencias',
-    category: 'exploracion',
-    section: 'Exploraciones complementarias',
-    chapter: 'Cap. 9',
-    page: 71,
-    pdfPage: 96,
-    summary: 'Exploración complementaria verificada.',
-    content: [
-      { label: 'Sección', value: 'Exploraciones complementarias' },
-      { label: 'Capítulo', value: 'Cap. 9 · Electrocardiografía de urgencias' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'ecg-cap9',
-        indexPage: 71,
-        pdfPage: 96,
-        note: 'Inicio verificado del capítulo de exploración.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'radiografia-torax',
-    title: 'Radiografía de tórax',
-    category: 'exploracion',
-    section: 'Exploraciones complementarias',
-    chapter: 'Cap. 10',
-    page: 83,
-    pdfPage: 108,
-    summary: 'Exploración complementaria verificada.',
-    content: [
-      { label: 'Sección', value: 'Exploraciones complementarias' },
-      { label: 'Capítulo', value: 'Cap. 10 · Radiografía de tórax' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'rx-torax-cap10',
-        indexPage: 83,
-        pdfPage: 108,
-        note: 'Inicio verificado del capítulo de exploración.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'ecografia',
-    title: 'Ecografía',
-    category: 'exploracion',
-    section: 'Exploraciones complementarias',
-    chapter: 'Cap. 12',
-    page: 108,
-    pdfPage: 133,
-    summary: 'Exploración complementaria verificada.',
-    content: [
-      { label: 'Sección', value: 'Exploraciones complementarias' },
-      { label: 'Capítulo', value: 'Cap. 12 · Ecografía' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'eco-cap12',
-        indexPage: 108,
-        pdfPage: 133,
-        note: 'Inicio verificado del capítulo de exploración.',
-      }),
-    ],
-  }),
-];
-
-export const relatedModules = [
-  createModule({
-    id: 'insuficiencia-cardiaca',
-    title: 'Insuficiencia cardíaca',
-    category: 'relacionado',
-    section: 'Urgencias cardiovasculares',
-    chapter: 'Cap. 19',
-    page: 161,
-    pdfPage: 186,
-    summary: 'Cruce verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias cardiovasculares' },
-      { label: 'Capítulo', value: 'Cap. 19 · Insuficiencia cardíaca' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'ic-cap19',
-        indexPage: 161,
-        pdfPage: 186,
-        note: 'Capítulo relacionado verificado.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'nauseas-vomitos-diarrea',
-    title: 'Náuseas, vómitos y diarrea',
-    category: 'relacionado',
-    section: 'Urgencias del aparato digestivo',
-    chapter: 'Cap. 51',
-    page: 358,
-    pdfPage: 383,
-    summary: 'Cruce verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias del aparato digestivo' },
-      { label: 'Capítulo', value: 'Cap. 51 · Náuseas, vómitos y diarrea' },
-    ],
-    bibliography: [
-      referenceEntry({
-        id: 'nvd-cap51',
-        indexPage: 358,
-        pdfPage: 383,
-        note: 'Capítulo relacionado verificado.',
-      }),
-    ],
-  }),
-  createModule({
-    id: 'crisis-epilepticas',
-    title: 'Crisis epilépticas',
-    category: 'relacionado',
+  },
+  {
+    id: 'coma',
+    title: 'Coma',
+    shortTitle: 'Coma',
+    chapter: 'Cap. 62',
     section: 'Urgencias neurológicas',
-    chapter: 'Cap. 63',
-    page: 435,
-    pdfPage: 460,
-    summary: 'Cruce verificado en la bibliografía.',
-    content: [
-      { label: 'Sección', value: 'Urgencias neurológicas' },
-      { label: 'Capítulo', value: 'Cap. 63 · Crisis epilépticas' },
-    ],
+    verifiedPage: 428,
+    pdfPage: 453,
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
-        id: 'crisis-cap63',
-        indexPage: 435,
-        pdfPage: 460,
-        note: 'Capítulo relacionado verificado.',
+        id: 'coma-cap62',
+        indexPage: 428,
+        pdfPage: 453,
+        note: 'Inicio verificado del capítulo base.',
       }),
     ],
-  }),
-];
-
-export const utilityModules = [
-  createModule({
-    id: 'medicamentos',
-    title: 'Medicamentos',
-    category: 'herramienta',
-    section: 'Uso transversal',
-    chapter: 'Índice transversal',
-    page: 0,
-    pdfPage: null,
-    summary: 'Índice farmacológico pendiente de desarrollo.',
-    content: [{ label: 'Estado', value: 'Sin módulo farmacológico activo en esta versión' }],
-    bibliography: [],
-  }),
-  createModule({
-    id: 'calculos',
-    title: 'Cálculos',
-    category: 'herramienta',
-    section: 'Uso transversal',
-    chapter: 'Índice de escalas y fórmulas',
-    page: 0,
-    pdfPage: null,
-    summary: 'Inventario auditado. Sin calculadoras activas en esta versión.',
-    content: [{ label: 'Estado', value: 'Solo índice y auditoría en README' }],
-    calculations: [
-      { label: 'Cockcroft-Gault', value: 'Cap. 5 · p. 39' },
-      { label: 'NIHSS', value: 'Cap. 64 · p. 446' },
-      { label: 'qSOFA', value: 'Cap. 107 · p. 640' },
-    ],
+  },
+  {
+    id: 'dolor-abdominal-agudo',
+    title: 'Dolor abdominal agudo',
+    shortTitle: 'Dolor abdominal agudo',
+    chapter: 'Cap. 50',
+    section: 'Urgencias del aparato digestivo',
+    verifiedPage: 340,
+    pdfPage: 365,
+    status: 'auditado',
+    implemented: false,
+    summary: 'Tema auditado. Sin protocolo operativo en esta fase.',
     bibliography: [
       referenceEntry({
-        id: 'calculos-cap5',
-        indexPage: 39,
-        pdfPage: 64,
-        note: 'Cockcroft-Gault y CKD-EPI.',
-      }),
-      referenceEntry({
-        id: 'calculos-cap62',
-        indexPage: 429,
-        pdfPage: 454,
-        note: 'Escala de coma de Glasgow.',
-      }),
-      referenceEntry({
-        id: 'calculos-cap107',
-        indexPage: 640,
-        pdfPage: 665,
-        note: 'SOFA y qSOFA.',
+        id: 'dolor-abdominal-cap50',
+        indexPage: 340,
+        pdfPage: 365,
+        note: 'Inicio verificado del capítulo base.',
       }),
     ],
-  }),
+  },
 ];
 
 export const recentActivity = [
   {
-    time: '09:40',
-    moduleId: 'dolor-toracico-agudo',
-    title: 'Dolor torácico agudo',
-    meta: 'Motivo de consulta · Cap. 25 · p. 207',
+    time: 'FA',
+    title: 'Protocolo real',
+    meta: 'Fibrilación auricular',
+    target: { type: 'protocol', id: 'fibrilacion-auricular' },
   },
   {
-    time: '08:55',
-    moduleId: 'ictus',
-    title: 'Ictus',
-    meta: 'Motivo de consulta · Cap. 64 · p. 442',
+    time: 'CAL',
+    title: 'CHA2DS2-VASc',
+    meta: 'Módulo FA',
+    target: { type: 'calculator', id: 'cha2ds2-vasc' },
   },
   {
-    time: '08:10',
-    moduleId: 'sepsis',
-    title: 'Sepsis',
-    meta: 'Motivo de consulta · Cap. 107 · p. 640',
+    time: 'CAL',
+    title: 'HAS-BLED',
+    meta: 'Módulo FA',
+    target: { type: 'calculator', id: 'has-bled' },
+  },
+  {
+    time: 'MED',
+    title: 'Apixabán',
+    meta: 'Ficha farmacológica',
+    target: { type: 'medication', id: 'apixaban' },
+  },
+  {
+    time: 'MED',
+    title: 'Metoprolol',
+    meta: 'Control de frecuencia',
+    target: { type: 'medication', id: 'metoprolol' },
   },
 ];
 
-export const getClinicalModule = (moduleId) =>
-  clinicalModules.find((module) => module.id === moduleId) ?? clinicalModules[0];
+export const bibliographyBaseUsed = [
+  {
+    id: 'murillo7',
+    title: bibliographyCatalog.murillo7.title,
+    shortTitle: bibliographyCatalog.murillo7.shortTitle,
+    filePath: bibliographyCatalog.murillo7.filePath,
+    status: 'activa',
+    note: 'Obra base auditada y utilizada en la app.',
+  },
+  {
+    id: 'radiologia-pendiente',
+    title: 'Bibliografía específica de radiología',
+    shortTitle: 'Radiología pendiente',
+    filePath: '',
+    status: 'no disponible en workspace',
+    note: 'No se ha detectado ningún nuevo archivo de radiología en el repositorio actual.',
+  },
+];
 
-export const coreReference = bibliographyCatalog.murillo7;
+export const getMotivoModule = (moduleId) =>
+  motivoConsultaModules.find((module) => module.id === moduleId) ?? motivoConsultaModules[0];
