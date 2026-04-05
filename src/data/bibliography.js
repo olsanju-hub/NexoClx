@@ -9,24 +9,26 @@ export const bibliographyCatalog = {
   },
 };
 
-export const buildReferenceHref = (referenceId, page) => {
+export const buildReferenceHref = (referenceId, pdfPage) => {
   const source = bibliographyCatalog[referenceId];
 
   if (!source) {
     return null;
   }
 
-  return page ? `${source.filePath}#page=${page}` : source.filePath;
+  return pdfPage ? `${source.filePath}#page=${pdfPage}` : source.filePath;
 };
 
 export const createBibliographyEntry = ({
   id,
   referenceId,
-  pages = [],
+  indexPages = [],
+  verifiedPages = [],
+  pdfPages = [],
   note = '',
 }) => {
   const source = bibliographyCatalog[referenceId];
-  const firstPage = Array.isArray(pages) && pages.length > 0 ? pages[0] : null;
+  const firstPdfPage = Array.isArray(pdfPages) && pdfPages.length > 0 ? pdfPages[0] : null;
 
   return {
     id,
@@ -34,8 +36,10 @@ export const createBibliographyEntry = ({
     reference: source?.title ?? referenceId,
     shortReference: source?.shortTitle ?? referenceId,
     filePath: source?.filePath ?? '',
-    pages,
-    href: buildReferenceHref(referenceId, firstPage),
+    indexPages,
+    verifiedPages,
+    pdfPages,
+    href: buildReferenceHref(referenceId, firstPdfPage),
     internalId: `${referenceId}:${id}`,
     note,
   };

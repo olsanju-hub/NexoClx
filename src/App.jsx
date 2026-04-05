@@ -7,12 +7,12 @@ import {
   ChevronRight,
   Clock3,
   ExternalLink,
-  FileText,
   Pill,
   Search,
   Stethoscope,
 } from 'lucide-react';
 import {
+  calculationAudit,
   clinicalModules,
   coreReference,
   explorationModules,
@@ -37,24 +37,30 @@ const surfaceClass =
 
 const mutedSurfaceClass = 'rounded-[1.1rem] border border-slate-200/70 bg-slate-50/90';
 
+const pendingCalculationPreview = calculationAudit
+  .filter((item) => item.status === 'pendiente')
+  .slice(0, 3)
+  .map((item) => ({
+    label: item.title,
+    meta: `${item.chapter} · p. ${item.verifiedPage}`,
+  }));
+
 const utilityCardConfig = {
   medicamentos: {
     icon: Pill,
-    description: 'Dosis, vía y contraindicaciones.',
-    links: [
-      { label: 'Dosis' },
-      { label: 'Vía' },
-      { label: 'Contraindicaciones' },
+    description: 'Sin módulo farmacológico activo todavía.',
+    status: 'Pendiente',
+    items: [
+      { label: 'Dosis', meta: 'Pendiente de desarrollo' },
+      { label: 'Vías', meta: 'Pendiente de desarrollo' },
+      { label: 'Contraindicaciones', meta: 'Pendiente de desarrollo' },
     ],
   },
   calculos: {
     icon: Calculator,
-    description: 'Bioquímica, coagulación y gasometría.',
-    links: [
-      { label: 'Bioquímica' },
-      { label: 'Coagulación' },
-      { label: 'Gasometría' },
-    ],
+    description: 'Índice auditado. Sin calculadoras activas.',
+    status: 'En revisión',
+    items: pendingCalculationPreview,
   },
 };
 
@@ -67,29 +73,16 @@ const SectionHeading = ({ title, note }) => (
   </div>
 );
 
-const HeaderButton = ({ children, href, icon: Icon, onClick, primary = false }) => {
-  const className = `inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
-    primary
-      ? 'bg-slate-950 text-white hover:bg-slate-800'
-      : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950'
-  }`;
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className={className}>
-        <Icon className="h-4 w-4" />
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <button type="button" onClick={onClick} className={className}>
-      <Icon className="h-4 w-4" />
-      {children}
-    </button>
-  );
-};
+const HeaderButton = ({ children, icon: Icon, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+  >
+    <Icon className="h-4 w-4" />
+    {children}
+  </button>
+);
 
 const BrandLockup = ({ onClick }) => (
   <button type="button" onClick={onClick} className="inline-flex items-center gap-3 text-left">
@@ -100,28 +93,26 @@ const BrandLockup = ({ onClick }) => (
   </button>
 );
 
-const ModuleRow = ({ module, active = false, href, onClick }) => {
-  const Element = onClick ? 'button' : href ? 'a' : 'div';
+const ModuleRow = ({ module, active = false, onClick }) => {
+  const Element = onClick ? 'button' : 'div';
+  const rowClass = active
+    ? 'border-sky-200 bg-sky-50/90'
+    : onClick
+      ? 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+      : 'border-slate-200 bg-white';
 
   return (
     <Element
       {...(onClick ? { type: 'button', onClick } : {})}
-      {...(href ? { href, target: '_blank', rel: 'noreferrer' } : {})}
-      className={`group flex w-full items-center justify-between gap-4 rounded-[1rem] border px-4 py-3 text-left transition-colors ${
-        active
-          ? 'border-sky-200 bg-sky-50/90'
-          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-      }`}
+      className={`group flex w-full items-center justify-between gap-4 rounded-[1rem] border px-4 py-3 text-left transition-colors ${rowClass}`}
     >
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-slate-900">{module.title}</p>
         <p className="mt-1 truncate text-xs text-slate-500">{formatModuleReference(module)}</p>
       </div>
-      {href ? (
-        <ExternalLink className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500" />
-      ) : (
+      {onClick ? (
         <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
-      )}
+      ) : null}
     </Element>
   );
 };
@@ -129,11 +120,6 @@ const ModuleRow = ({ module, active = false, href, onClick }) => {
 const UtilityCard = ({ module }) => {
   const config = utilityCardConfig[module.id];
   const Icon = config.icon;
-  const fallbackHref = module.bibliography[0]?.href ?? bibliographyHref;
-  const links = config.links.map((item, index) => ({
-    label: item.label,
-    href: module.bibliography[index]?.href ?? fallbackHref,
-  }));
 
   return (
     <article className={`${surfaceClass} p-5`}>
@@ -147,17 +133,24 @@ const UtilityCard = ({ module }) => {
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {links.map((link) => (
-          <a
-            key={`${module.id}-${link.label}`}
-            href={link.href}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-950"
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          {config.status}
+        </span>
+        {module.id === 'calculos' ? (
+          <span className="text-xs text-slate-500">Índice maestro en README</span>
+        ) : null}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {config.items.map((item) => (
+          <div
+            key={`${module.id}-${item.label}`}
+            className="rounded-[1rem] border border-slate-200 bg-slate-50 px-3 py-2.5"
           >
-            {link.label}
-          </a>
+            <p className="text-sm font-medium text-slate-900">{item.label}</p>
+            <p className="mt-1 text-xs text-slate-500">{item.meta}</p>
+          </div>
         ))}
       </div>
     </article>
@@ -187,7 +180,7 @@ const DetailGroup = ({ title, items, emptyLabel }) => (
 
 const BibliographyBlock = ({ entries }) => (
   <section className={`${surfaceClass} p-5`}>
-    <SectionHeading title="Bibliografía" note="Referencia exacta del módulo activo." />
+    <SectionHeading title="Bibliografía" note="Acceso concentrado a la referencia del módulo activo." />
 
     <div className="space-y-3">
       {entries.map((entry) => (
@@ -195,7 +188,10 @@ const BibliographyBlock = ({ entries }) => (
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-slate-900">{entry.shortReference}</p>
-              <p className="mt-1 text-sm text-slate-500">Páginas: {entry.pages.join(', ')}</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Libro: p. {entry.verifiedPages.join(', ')}
+                {entry.pdfPages.length > 0 ? ` · PDF: p. ${entry.pdfPages.join(', ')}` : ''}
+              </p>
               {entry.note ? <p className="mt-2 text-sm text-slate-600">{entry.note}</p> : null}
             </div>
             <a
@@ -290,10 +286,7 @@ const App = () => {
 
           <div className="flex items-center gap-2">
             <HeaderButton icon={BookOpen} onClick={focusReference}>
-              Obra base
-            </HeaderButton>
-            <HeaderButton href={bibliographyHref} icon={ExternalLink} primary>
-              Abrir PDF
+              Bibliografía
             </HeaderButton>
           </div>
         </div>
@@ -370,15 +363,9 @@ const App = () => {
             <span className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600">
               {selectedModule.section}
             </span>
-            <a
-              href={selectedModule.bibliography[0]?.href ?? bibliographyHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-            >
+            <span className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700">
               {formatModuleReference(selectedModule)}
-              <ExternalLink className="h-4 w-4" />
-            </a>
+            </span>
           </div>
         )}
       </div>
@@ -419,7 +406,7 @@ const App = () => {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-            <p className="text-sm text-slate-500">Siete accesos clínicos listos para crecer.</p>
+            <p className="text-sm text-slate-500">Siete accesos clínicos auditados para esta capa.</p>
             <button
               type="button"
               onClick={() => openClinicalLayer(selectedModuleId)}
@@ -437,58 +424,6 @@ const App = () => {
           ))}
         </div>
       </div>
-
-      <section ref={referenceRef} id="obra-base" className={`${surfaceClass} mt-4 p-4 sm:p-5`}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src={bookCover}
-              alt={coreReference.title}
-              className="h-20 w-[3.8rem] shrink-0 rounded-xl border border-slate-200 object-cover"
-            />
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                Obra base
-              </p>
-              <h2 className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-slate-900">
-                {coreReference.title}
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setReferenceOpen((current) => !current)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-            >
-              Ver secciones
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${referenceOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            <a
-              href={bibliographyHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-            >
-              Abrir PDF
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-
-        {referenceOpen ? (
-          <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {referenceSections.map((section) => (
-              <div key={section} className={`${mutedSurfaceClass} px-4 py-3 text-sm text-slate-700`}>
-                {section}
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </section>
 
       <section className={`${surfaceClass} mt-4 overflow-hidden`}>
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -518,12 +453,64 @@ const App = () => {
           ))}
         </div>
       </section>
+
+      <section ref={referenceRef} id="obra-base" className={`${surfaceClass} mt-4 p-4 sm:p-5`}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <img
+              src={bookCover}
+              alt={coreReference.title}
+              className="h-20 w-[3.8rem] shrink-0 rounded-xl border border-slate-200 object-cover"
+            />
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                Bibliografía base
+              </p>
+              <h2 className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-slate-900">
+                {coreReference.title}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setReferenceOpen((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+            >
+              Ver bloques auditados
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${referenceOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <a
+              href={bibliographyHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+            >
+              Abrir PDF
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+
+        {referenceOpen ? (
+          <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {referenceSections.map((section) => (
+              <div key={section} className={`${mutedSurfaceClass} px-4 py-3 text-sm text-slate-700`}>
+                {section}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 
   const ClinicalView = () => (
     <div className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => navigateTo('home')}
@@ -532,16 +519,6 @@ const App = () => {
           <ArrowLeft className="h-4 w-4" />
           Volver
         </button>
-
-        <a
-          href={selectedModule.bibliography[0]?.href ?? bibliographyHref}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-        >
-          Abrir referencia
-          <ExternalLink className="h-4 w-4" />
-        </a>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_340px]">
@@ -561,14 +538,10 @@ const App = () => {
           </section>
 
           <section className={`${surfaceClass} p-5`}>
-            <SectionHeading title="Exploraciones de apoyo" note="Capítulos complementarios enlazados a su referencia." />
+            <SectionHeading title="Exploraciones de apoyo" note="Capítulos auditados de la misma obra base." />
             <div className="grid gap-2 md:grid-cols-2">
               {explorationModules.map((module) => (
-                <ModuleRow
-                  key={module.id}
-                  module={module}
-                  href={module.bibliography[0]?.href ?? bibliographyHref}
-                />
+                <ModuleRow key={module.id} module={module} />
               ))}
             </div>
           </section>
@@ -612,27 +585,19 @@ const App = () => {
           </section>
 
           <section className={`${surfaceClass} p-5`}>
-            <SectionHeading title="Soporte vital" note="Acceso rápido de apoyo inicial." />
+            <SectionHeading title="Soporte vital" note="Bloques de apoyo validados en la bibliografía." />
             <div className="space-y-2">
               {supportModules.map((module) => (
-                <ModuleRow
-                  key={module.id}
-                  module={module}
-                  href={module.bibliography[0]?.href ?? bibliographyHref}
-                />
+                <ModuleRow key={module.id} module={module} />
               ))}
             </div>
           </section>
 
           <section className={`${surfaceClass} p-5`}>
-            <SectionHeading title="Cruces frecuentes" note="Capítulos relacionados con esta capa." />
+            <SectionHeading title="Cruces frecuentes" note="Capítulos relacionados ya verificados." />
             <div className="space-y-2">
               {relatedModules.map((module) => (
-                <ModuleRow
-                  key={module.id}
-                  module={module}
-                  href={module.bibliography[0]?.href ?? bibliographyHref}
-                />
+                <ModuleRow key={module.id} module={module} />
               ))}
             </div>
           </section>
@@ -655,15 +620,7 @@ const App = () => {
       <footer className="border-t border-slate-200/80 px-5 py-6 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>NexoClx · Consulta clínica inicial</p>
-          <a
-            href={bibliographyHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 transition-colors hover:text-slate-900"
-          >
-            <FileText className="h-4 w-4" />
-            {coreReference.shortTitle}
-          </a>
+          <p>{coreReference.shortTitle}</p>
         </div>
       </footer>
     </div>
