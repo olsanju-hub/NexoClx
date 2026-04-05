@@ -47,16 +47,114 @@ git push origin main
 
 GitHub Actions compila y publica automáticamente la rama `main`.
 
-## Estructura útil
+## Bitácora
 
-- `src/App.jsx`: interfaz principal y navegación contextual
-- `src/data/modules.js`: auditoría temática, home y bibliografía base usada
-- `src/data/protocols.js`: protocolo real de fibrilación auricular
-- `src/data/calculators.js`: auditoría de cálculos y calculadoras activas
-- `src/data/medications.js`: fichas farmacológicas activas del módulo FA
-- `src/data/imageTemplates.js`: índice de plantillas de imagen
-- `src/data/bibliography.js`: catálogo bibliográfico y enlaces al PDF
-- `public/biblio/urgencias-murillo-7ma.pdf`: obra base activa
+### Fase 1 · Base del proyecto
+
+- Se montó la app estática con `Vite + React + Tailwind`.
+- Se preparó el despliegue en `GitHub Pages`.
+- Se dejó el repo listo para build y publicación continua.
+
+### Fase 2 · Limpieza visual y home
+
+- Se redujo la home para evitar aspecto de demo o dashboard genérico.
+- Se rebajó el peso visual de la bibliografía y de la marca repetida.
+- Se dejó una única dirección visual sobria y más compacta.
+
+### Fase 3 · Auditoría bibliográfica
+
+- Se auditó la obra base `Murillo 7.ª ed.`.
+- Se separó `página índice`, `página libro` y `página PDF`.
+- Se construyó el índice maestro de temas y cálculos reales detectados en la bibliografía.
+- Se dejó constancia de que la nueva bibliografía específica de radiología no está en este workspace.
+
+### Fase 4 · Primer contenido clínico real
+
+- Se construyó el primer protocolo real: `fibrilación auricular`.
+- Se integraron tres cálculos útiles para ese flujo: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
+- Se construyeron fichas farmacológicas enlazadas al protocolo.
+- Se usó `CIMA AEMPS` como fuente farmacológica principal y el capítulo 23 del Murillo como base contextual del protocolo.
+
+## Estructura real de la app
+
+### Flujo funcional actual
+
+- `Home`
+- `Motivo de consulta`
+- `Protocolo activo de fibrilación auricular`
+- `Cálculos`
+- `Medicamentos`
+- `Bibliografía`
+
+### Estructura técnica
+
+- `src/App.jsx`
+  - interfaz principal
+  - navegación contextual entre home, protocolo, cálculos y medicamentos
+  - retorno al contexto de origen desde cálculo o fármaco
+
+- `src/data/bibliography.js`
+  - catálogo bibliográfico
+  - generación de enlaces al PDF
+  - estructura común de referencias
+
+- `src/data/modules.js`
+  - módulos auditados para `Motivo de consulta`
+  - actividad reciente
+  - bibliografía base usada
+  - índice clínico auditado
+
+- `src/data/protocols.js`
+  - protocolos clínicos reales
+  - en esta fase contiene `fibrilación auricular`
+
+- `src/data/calculators.js`
+  - auditoría de cálculos y escalas
+  - lógica activa de `CHA2DS2-VASc`
+  - lógica activa de `HAS-BLED`
+  - lógica activa de `Cockcroft-Gault`
+
+- `src/data/medications.js`
+  - fichas farmacológicas del protocolo activo
+  - dosis, vía, frecuencia, duración
+  - contraindicaciones y ajustes por IR / IH
+  - fuentes CIMA y referencia contextual del protocolo
+
+- `src/data/imageTemplates.js`
+  - índice de plantillas de imagen
+  - primera plantilla preparada: `RX tórax sistemática`
+
+- `public/biblio/urgencias-murillo-7ma.pdf`
+  - obra base activa usada por la app
+
+### Qué está realmente activo hoy
+
+- Home compacta
+- Protocolo de fibrilación auricular
+- Cálculos de FA
+- Fichas farmacológicas de FA
+- Índice maestro auditado en este `README`
+
+## Pendiente
+
+### Pendiente funcional
+
+- Construir el siguiente protocolo real a partir de los temas ya auditados.
+- Ampliar `Medicamentos` más allá del módulo de fibrilación auricular.
+- Implementar nuevos cálculos solo cuando se active su módulo clínico correspondiente.
+- Mejorar la búsqueda para que no sea solo una entrada de navegación sino también una entrada clínica más útil.
+
+### Pendiente bibliográfico
+
+- Subir la bibliografía específica de radiología al repo.
+- Indexar esa nueva fuente una vez esté realmente disponible.
+- Completar la plantilla `RX tórax sistemática` con base radiológica real verificada.
+
+### Pendiente clínico
+
+- Desarrollar protocolos reales para temas ya auditados como `ictus`, `sepsis`, `shock` o `síndrome coronario agudo`.
+- Mantener la misma arquitectura conectada entre protocolo, cálculos, medicamentos y bibliografía.
+- Seguir separando con claridad lo que proviene del libro y lo que proviene de `CIMA AEMPS`.
 
 ## Índice maestro del proyecto
 
