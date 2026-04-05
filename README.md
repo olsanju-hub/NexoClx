@@ -35,6 +35,7 @@ Principios actuales del proyecto:
 - Primer protocolo real operativo: `fibrilación auricular`, dividido en vistas cortas: `Resumen`, `Decisión`, `Cálculos`, `Medicación` y `Seguridad`.
 - Cálculos activos del módulo FA: `CHA2DS2-VASc`, `HAS-BLED` y `Cockcroft-Gault`.
 - Fichas farmacológicas activas del módulo FA enlazadas desde el protocolo y desde `Medicamentos`.
+- Icono unificado dentro y fuera de la app, con `manifest` web, `apple-touch-icon` y `service worker` para instalación PWA.
 - Bibliografía base activa: `Murillo 7.ª ed.` auditada con separación entre `página índice`, `página real` y `página PDF`.
 - Plantilla de imagen inicial creada solo como estructura: `RX tórax sistemática`.
 - Despliegue activo en GitHub Pages: `https://olsanju-hub.github.io/NexoClx/`.
@@ -104,6 +105,18 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
   - navegación entre `Home`, `Protocolos`, `Cálculos`, `Medicamentos` y bibliografía
   - retorno contextual al origen cuando se abre cálculo o fármaco desde protocolo
   - control de subpantallas cortas dentro del módulo de `fibrilación auricular`
+
+- `src/main.jsx`
+  - arranque de React
+  - registro del `service worker` en producción
+
+- `public/manifest.webmanifest`
+  - configuración PWA
+  - iconos de instalación
+  - `start_url`, `scope` y colores de la app
+
+- `public/sw.js`
+  - service worker mínimo para instalación y caché básica del shell
 
 - `src/data/bibliography.js`
   - catálogo bibliográfico
@@ -245,6 +258,7 @@ La interfaz prioriza `verifiedPages` para mostrar la ubicación real del conteni
 | 2026-04-05 | Primera bitácora del proyecto | README | Se documentó la evolución por fases para evitar que el repositorio quedara sin trazabilidad funcional. |
 | 2026-04-05 | Reestructuración del README como documento vivo | README | Se rehízo el `README` para reflejar arquitectura, índice funcional, bibliografía y pendientes reales. |
 | 2026-04-05 | Rearquitectura móvil de navegación | Home / Protocolos / módulo FA | La app pasó a abrir siempre en `Home`, se creó una pantalla propia de `Protocolos` y FA se dividió en subpantallas breves para reducir scroll. |
+| 2026-04-05 | Corrección de icono PWA | PWA / branding | Se unificó el icono interno y externo y se añadieron `manifest`, `apple-touch-icon` y `service worker` para que la instalación use icono real. |
 
 ## Pendiente
 

@@ -28,7 +28,7 @@ import {
 } from './data/modules';
 import { getProtocol } from './data/protocols';
 
-const brandMark = `${import.meta.env.BASE_URL}branding/NexoClx-mark.png`;
+const brandMark = `${import.meta.env.BASE_URL}branding/app-icon-512.png`;
 
 const shellBackground = {
   backgroundImage: 'linear-gradient(180deg, #f7fafb 0%, #edf2f5 100%)',
