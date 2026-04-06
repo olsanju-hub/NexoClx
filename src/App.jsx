@@ -1,5 +1,6 @@
 import React, { startTransition, useEffect, useState } from 'react';
 import {
+  Activity,
   AlertCircle,
   ArrowLeft,
   BookOpen,
@@ -7,8 +8,11 @@ import {
   ChevronRight,
   ClipboardList,
   ExternalLink,
+  Info,
   LayoutDashboard,
   Pill,
+  ShieldAlert,
+  Zap,
 } from 'lucide-react';
 import { buildReferenceHref } from './data/bibliography';
 import {
@@ -64,6 +68,13 @@ const initialCalculatorInputs = {
     weightKg: '',
     serumCreatinineMgDl: '',
   },
+};
+
+const initialFaFlowState = {
+  step: 1,
+  stability: null,
+  duration: null,
+  structuralHeartDisease: null,
 };
 
 const pendingCalculations = calculationAudit.filter((item) => item.status !== 'implementado');
@@ -802,247 +813,446 @@ const AuditView = ({ module, onBack }) => (
   </div>
 );
 
-const ProtocolView = ({
+const FaStepChip = ({ index, label, active }) => (
+  <div
+    className={`rounded-full border px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.16em] ${
+      active ? 'border-sky-200 bg-sky-50 text-sky-800' : 'border-slate-200 bg-white text-slate-400'
+    }`}
+  >
+    {index}. {label}
+  </div>
+);
+
+const FlowChoiceCard = ({ icon: Icon, title, note, onClick, tone = 'neutral' }) => {
+  const toneClass =
+    tone === 'critical'
+      ? 'border-red-100 bg-red-50/40 hover:bg-red-50'
+      : 'border-slate-200 bg-slate-50/70 hover:border-sky-100 hover:bg-white';
+  const iconClass = tone === 'critical' ? 'text-red-600' : 'text-sky-700';
+  const titleClass = tone === 'critical' ? 'text-red-950' : 'text-slate-900';
+  const noteClass = tone === 'critical' ? 'text-red-700/70' : 'text-slate-500';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group flex w-full items-center gap-4 rounded-[1.45rem] border px-5 py-5 text-left transition-colors ${toneClass}`}
+    >
+      <span className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white ${iconClass}`}>
+        <Icon className="h-6 w-6" />
+      </span>
+      <div className="min-w-0">
+        <p className={`text-sm font-semibold ${titleClass}`}>{title}</p>
+        <p className={`mt-1 text-xs leading-relaxed ${noteClass}`}>{note}</p>
+      </div>
+      <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
+    </button>
+  );
+};
+
+const FlowSelectButton = ({ label, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`rounded-[1rem] border px-4 py-4 text-sm font-semibold transition-colors ${
+      active
+        ? 'border-sky-800 bg-sky-800 text-white shadow-[0_18px_35px_-26px_rgba(3,105,161,0.7)]'
+        : 'border-transparent bg-slate-50 text-slate-600'
+    }`}
+  >
+    {label}
+  </button>
+);
+
+const FlowActionCard = ({ title, body, tone = 'neutral', children = null }) => {
+  const toneClass =
+    tone === 'critical'
+      ? 'border-red-200/80 bg-red-600 text-white'
+      : tone === 'warning'
+        ? 'border-amber-200/80 bg-amber-50 text-amber-950'
+        : 'border-slate-200/80 bg-white text-slate-900';
+
+  return (
+    <section className={`rounded-[1.6rem] border px-5 py-5 shadow-[0_24px_50px_-44px_rgba(15,23,42,0.5)] ${toneClass}`}>
+      <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+      <p
+        className={`mt-2 text-sm leading-relaxed ${
+          tone === 'critical' ? 'text-red-50/90' : tone === 'warning' ? 'text-amber-900/80' : 'text-slate-600'
+        }`}
+      >
+        {body}
+      </p>
+      {children ? <div className="mt-5">{children}</div> : null}
+    </section>
+  );
+};
+
+const FibrilacionAuricularFlowView = ({
   protocol,
-  initialSection = 'ruta',
-  calculatorInputs,
-  onCalculatorChange,
+  faFlowState,
+  onFaFlowChange,
+  onFaFlowReset,
   onCalculatorOpen,
+  onCalculationsHub,
   onMedicationOpen,
+  onMedicationsHub,
   onBack,
+  onFinish,
 }) => {
-  const [activeSection, setActiveSection] = useState(initialSection);
-  const [openMiniCalculator, setOpenMiniCalculator] = useState(null);
-  const [activeDecisionId, setActiveDecisionId] = useState(protocol.decisionCards[0]?.id ?? '');
-  const [activeMedicationGroup, setActiveMedicationGroup] = useState(protocol.medicationGroups[0]?.title ?? '');
-
-  useEffect(() => {
-    setActiveSection(initialSection);
-  }, [initialSection, protocol.id]);
-
-  const currentDecision =
-    protocol.decisionCards.find((card) => card.id === activeDecisionId) ?? protocol.decisionCards[0];
-  const currentMedicationGroup =
-    protocol.medicationGroups.find((group) => group.title === activeMedicationGroup) ?? protocol.medicationGroups[0];
   const referenceHref = protocol.bibliography[0]?.href ?? buildReferenceHref('murillo7', protocol.pdfPage);
+  const { step, stability, duration, structuralHeartDisease } = faFlowState;
+  const controlMedicationIds = structuralHeartDisease ? ['digoxina', 'amiodarona'] : ['metoprolol', 'verapamilo'];
+  const preventionMedicationIds = ['apixaban', 'acenocumarol'];
+  const quickCalculationIds = ['cha2ds2-vasc', 'has-bled', 'cockcroft-gault'];
 
-  const decisionLabels = {
-    inestable: 'Inestable',
-    lt48: '< 48 h',
-    gt48: '> 48 h',
-    'slow-normal': 'Lenta / controlada',
-  };
-
-  const openProtocolSection = (nextSection) => {
-    setActiveSection(nextSection);
-
-    if (nextSection !== 'calculos') {
-      setOpenMiniCalculator(null);
-    }
+  const updateFlow = (changes) => {
+    onFaFlowChange(changes);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
-      <BackBar label="Protocolos" onClick={onBack} />
-
       <section className={`${shellCardClass} p-5 sm:p-6`}>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge tone="active">Protocolo activo</StatusBadge>
-              <span className="text-sm text-slate-500">
-                {protocol.chapter} · p. {protocol.verifiedPage}
-              </span>
-            </div>
-            <h1 className="mt-3 text-[1.8rem] font-semibold tracking-tight text-slate-950 sm:text-[2rem]">
-              {protocol.title}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">{protocol.summary}</p>
-          </div>
-
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-400 transition-colors hover:text-slate-800"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Cancelar
+          </button>
           {referenceHref ? (
             <button
               type="button"
               onClick={() => openPdf(referenceHref)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-900"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-900"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              FA · PDF p. {protocol.pdfPage}
+              Fuente
             </button>
           ) : null}
         </div>
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
-          <ProtocolSectionButton label="Ruta" active={activeSection === 'ruta'} onClick={() => openProtocolSection('ruta')} />
-          <ProtocolSectionButton
-            label="Decisión"
-            active={activeSection === 'decision'}
-            onClick={() => openProtocolSection('decision')}
-          />
-          <ProtocolSectionButton
-            label="Cálculos"
-            active={activeSection === 'calculos'}
-            onClick={() => openProtocolSection('calculos')}
-          />
-          <ProtocolSectionButton
-            label="Fármacos"
-            active={activeSection === 'medicacion'}
-            onClick={() => openProtocolSection('medicacion')}
-          />
-          <ProtocolSectionButton
-            label="Alertas"
-            active={activeSection === 'alertas'}
-            onClick={() => openProtocolSection('alertas')}
-          />
+        <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-sky-700">Protocolo FA</p>
+            <h1 className="mt-2 text-[1.8rem] font-semibold tracking-tight text-slate-950 sm:text-[2rem]">
+              {protocol.longTitle ?? protocol.title}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+              Flujo clínico corto para decidir conducta inmediata, sin volver a una pantalla larga.
+            </p>
+          </div>
+          <div className="min-w-[180px]">
+            <div className="text-right text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Paso {step} de 4
+            </div>
+            <div className="mt-2 h-1.5 rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-sky-600 transition-all duration-300"
+                style={{ width: `${(step / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <FaStepChip index={1} label="Estabilidad" active={step === 1} />
+          <FaStepChip index={2} label="Contexto" active={step === 2} />
+          <FaStepChip index={3} label="Conducta" active={step === 3} />
+          <FaStepChip index={4} label="Ictus" active={step === 4} />
         </div>
       </section>
 
-      {activeSection === 'ruta' ? (
-        <DetailPanel
-          eyebrow="Ruta rápida"
-          title="FA en formato corto"
-          note="Selecciona el escenario y salta a la decisión útil sin recorrer una página larga."
-        >
-          <div className="grid gap-3 sm:grid-cols-2">
-            {protocol.quickSummary.map((item) => (
-              <SummaryActionCard
-                key={item.id}
-                title={item.title}
-                action={item.action}
-                onClick={() => {
-                  setActiveDecisionId(item.id);
-                  openProtocolSection('decision');
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {protocol.quickChecks.map((item) => (
-              <div
-                key={item}
-                className="rounded-[1rem] border border-slate-200/80 bg-slate-50 px-3.5 py-3 text-sm text-slate-700"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </DetailPanel>
-      ) : null}
-
-      {activeSection === 'decision' ? (
-        <DetailPanel
-          eyebrow="Decisión"
-          title="Qué hacer según el escenario"
-          note="La vista muestra una sola rama cada vez para reducir texto y acelerar la lectura."
-        >
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-            {protocol.decisionCards.map((card) => (
-              <ProtocolSectionButton
-                key={card.id}
-                label={decisionLabels[card.id] ?? card.situation}
-                active={currentDecision.id === card.id}
-                onClick={() => setActiveDecisionId(card.id)}
-              />
-            ))}
-          </div>
-          <DecisionCard
-            card={currentDecision}
-            onOpenCalculations={() => openProtocolSection('calculos')}
-            onOpenMedications={() => openProtocolSection('medicacion')}
+      {step === 1 ? (
+        <section className={`${panelClass} animate-in fade-in slide-in-from-bottom-4 p-5 duration-300 sm:p-6`}>
+          <SectionTitle
+            eyebrow="Paso 1"
+            title="Estabilidad hemodinámica"
+            note="Evalúa shock, edema agudo de pulmón o síndrome coronario agudo antes de decidir el resto."
           />
-        </DetailPanel>
+          <div className="grid gap-4">
+            <FlowChoiceCard
+              icon={ShieldAlert}
+              title="Inestabilidad / crítico"
+              note="Shock, angina grave o insuficiencia cardíaca aguda."
+              tone="critical"
+              onClick={() =>
+                updateFlow({
+                  step: 2,
+                  stability: 'unstable',
+                  duration: null,
+                  structuralHeartDisease: null,
+                })
+              }
+            />
+            <FlowChoiceCard
+              icon={Activity}
+              title="Estabilidad clínica"
+              note="Sin compromiso hemodinámico inmediato."
+              onClick={() =>
+                updateFlow({
+                  step: 2,
+                  stability: 'stable',
+                })
+              }
+            />
+          </div>
+        </section>
       ) : null}
 
-      {activeSection === 'calculos' ? (
-        <DetailPanel
-          eyebrow="Cálculos FA"
-          title="Acceso rápido a escalas"
-          note="Se abren dentro del protocolo en formato compacto y también siguen disponibles en la sección general."
-        >
-          <div className="space-y-3">
-            {protocol.calculatorIds.map((calculatorId) => {
-              const calculator = getCalculator(calculatorId);
-              const result = getCalculatorResult(calculatorId, calculatorInputs[calculatorId]);
-              const isOpen = openMiniCalculator === calculatorId;
+      {step === 2 && stability === 'stable' ? (
+        <section className={`${panelClass} animate-in fade-in slide-in-from-right-4 p-5 duration-300 sm:p-6`}>
+          <SectionTitle
+            eyebrow="Paso 2"
+            title="Contexto del episodio"
+            note="Completa las dos variables antes de pasar a la conducta."
+          />
 
-              return (
-                <div key={calculatorId} className="space-y-2">
-                  <CalculatorQuickRow
-                    calculator={calculator}
-                    result={result}
-                    isOpen={isOpen}
-                    onToggle={() =>
-                      setOpenMiniCalculator((current) => (current === calculatorId ? null : calculatorId))
-                    }
-                    onOpenDetail={() => onCalculatorOpen(calculatorId, 'calculos')}
+          <div className="space-y-6">
+            <div>
+              <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Tiempo de evolución
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <FlowSelectButton
+                  label="< 48 horas"
+                  active={duration === 'lt48'}
+                  onClick={() => updateFlow({ duration: 'lt48' })}
+                />
+                <FlowSelectButton
+                  label="> 48 h o desconocida"
+                  active={duration === 'gt48'}
+                  onClick={() => updateFlow({ duration: 'gt48' })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Cardiopatía estructural significativa
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <FlowSelectButton
+                  label="Sí"
+                  active={structuralHeartDisease === true}
+                  onClick={() => updateFlow({ structuralHeartDisease: true })}
+                />
+                <FlowSelectButton
+                  label="No / desconocido"
+                  active={structuralHeartDisease === false}
+                  onClick={() => updateFlow({ structuralHeartDisease: false })}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button type="button" onClick={() => updateFlow({ step: 1 })} className={subtleButtonClass}>
+                Volver
+              </button>
+              <button
+                type="button"
+                disabled={!duration || structuralHeartDisease === null}
+                onClick={() => updateFlow({ step: 3 })}
+                className="inline-flex items-center gap-2 rounded-2xl bg-sky-800 px-4 py-3 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Continuar
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {step === 2 && stability === 'unstable' ? (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+          <FlowActionCard
+            title="Conducta inmediata: cardioversión eléctrica urgente"
+            body="Prioridad absoluta: estabilización hemodinámica. La fibrilación rápida inestable no debe esperar a un desarrollo largo del protocolo."
+            tone="critical"
+          >
+            <div className="space-y-3">
+              <div className="rounded-[1.1rem] border border-white/15 bg-white/10 px-4 py-3">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-red-100/70">
+                  Preprocedimiento
+                </p>
+                <p className="mt-2 text-sm text-red-50/90">
+                  Analgesia y sedación. Si el paciente toma digoxina, considera iniciar con menor energía y evita cardioversión si sospechas intoxicación digitálica.
+                </p>
+              </div>
+              <div className="rounded-[1.1rem] border border-white/15 bg-white/10 px-4 py-3">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-red-100/70">
+                  Anticoagulación aguda
+                </p>
+                <p className="mt-2 text-sm text-red-50/90">
+                  Si no está anticoagulado, plantea HBPM terapéutica en fase aguda y documenta el plan de continuación.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {['enoxaparina', 'amiodarona'].map((medicationId) => (
+                  <MedicationQuickRow
+                    key={medicationId}
+                    medication={getMedication(medicationId)}
+                    onOpen={() => onMedicationOpen(medicationId)}
                   />
-                  {isOpen ? (
-                    <CalculatorPanel
-                      calculatorId={calculatorId}
-                      values={calculatorInputs[calculatorId]}
-                      onChange={(field, value) => onCalculatorChange(calculatorId, field, value)}
-                      compact
-                    />
-                  ) : null}
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
+          </FlowActionCard>
+
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={onFaFlowReset} className={subtleButtonClass}>
+              Reevaluar estabilidad
+            </button>
+            <button
+              type="button"
+              onClick={() => updateFlow({ step: 4 })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              <Calculator className="h-4 w-4" />
+              Ir a prevención de ictus
+            </button>
           </div>
-        </DetailPanel>
+        </div>
       ) : null}
 
-      {activeSection === 'medicacion' ? (
-        <DetailPanel
-          eyebrow="Fármacos conectados"
-          title="Medicamentos útiles en FA"
-          note="El protocolo muestra solo lo imprescindible; la ficha completa sigue en su vista propia."
-        >
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-            {protocol.medicationGroups.map((group) => (
-              <ProtocolSectionButton
-                key={group.title}
-                label={group.title}
-                active={currentMedicationGroup.title === group.title}
-                onClick={() => setActiveMedicationGroup(group.title)}
-              />
-            ))}
+      {step === 3 && stability === 'stable' ? (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <section className="overflow-hidden rounded-[1.8rem] border border-slate-200/80 bg-white shadow-[0_28px_60px_-44px_rgba(15,23,42,0.5)]">
+            <div className="bg-sky-900 px-5 py-5 text-white sm:px-6">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-sky-200">Paso 3</p>
+              <h3 className="mt-2 text-xl font-semibold tracking-tight">Conducta inicial</h3>
+              <p className="mt-1 text-sm text-sky-100/80">Objetivo operativo: control de frecuencia y definición de cardioversión.</p>
+            </div>
+
+            <div className="space-y-5 px-5 py-5 sm:px-6">
+              <div className="rounded-[1.25rem] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                  <Info className="h-4 w-4 text-sky-700" />
+                  {structuralHeartDisease ? 'Con cardiopatía estructural significativa' : 'Sin cardiopatía estructural significativa'}
+                </p>
+                <p className="mt-2 text-sm text-slate-600">
+                  {structuralHeartDisease
+                    ? 'Prioriza digoxina para control de frecuencia y reserva amiodarona como apoyo si la situación lo exige.'
+                    : 'Prioriza betabloqueante o verapamilo/diltiazem según perfil clínico y tolerancia.'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {controlMedicationIds.map((medicationId) => (
+                  <MedicationQuickRow
+                    key={medicationId}
+                    medication={getMedication(medicationId)}
+                    onOpen={() => onMedicationOpen(medicationId)}
+                  />
+                ))}
+              </div>
+
+              <FlowActionCard
+                title={duration === 'lt48' ? 'Control del ritmo: cardioversión urgente' : 'Control del ritmo: cardioversión electiva'}
+                body={
+                  duration === 'lt48'
+                    ? 'Si el episodio es menor de 48 horas, puedes plantear cardioversión farmacológica o eléctrica tras controlar síntomas y revisar el contexto clínico.'
+                    : 'Si el episodio supera 48 horas o la duración es desconocida, necesita anticoagulación previa o ETE antes de la cardioversión.'
+                }
+                tone={duration === 'lt48' ? 'neutral' : 'warning'}
+              >
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => onMedicationOpen('amiodarona')} className={subtleButtonClass}>
+                    Abrir amiodarona
+                  </button>
+                  <button type="button" onClick={onMedicationsHub} className={subtleButtonClass}>
+                    Ver fármacos
+                  </button>
+                </div>
+              </FlowActionCard>
+
+              <div className="rounded-[1.2rem] border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950/80">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                  <span>{protocol.warnings[0]}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => updateFlow({ step: 2 })} className={subtleButtonClass}>
+              Volver al contexto
+            </button>
+            <button
+              type="button"
+              onClick={() => updateFlow({ step: 4 })}
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              <Calculator className="h-4 w-4" />
+              Evaluar riesgo embólico
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {step === 4 ? (
+        <section className={`${panelClass} animate-in fade-in slide-in-from-bottom-4 p-5 duration-300 sm:p-6`}>
+          <SectionTitle
+            eyebrow="Paso 4"
+            title="Prevención de ictus"
+            note="Abre las escalas y enlaza la estrategia de anticoagulación sin salir de la arquitectura general."
+          />
+
+          <div className="rounded-[1.4rem] bg-slate-900 px-5 py-5 text-white">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Criterio operativo
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-100">
+              Anticoagulación oral si CHA2DS2-VASc es igual o mayor de 1 en hombres o igual o mayor de 2 en mujeres. Si no hay prótesis valvular mecánica ni estenosis mitral moderada/grave, prioriza ACOD.
+            </p>
           </div>
 
-          <div className="space-y-2">
-            {currentMedicationGroup.medicationIds.map((medicationId) => {
-              const medication = getMedication(medicationId);
-
+          <div className="mt-4 space-y-2">
+            {quickCalculationIds.map((calculatorId) => {
+              const calculator = getCalculator(calculatorId);
               return (
-                <MedicationQuickRow
-                  key={medication.id}
-                  medication={medication}
-                  onOpen={() => onMedicationOpen(medication.id, 'medicacion')}
+                <ListActionRow
+                  key={calculatorId}
+                  title={calculator.title}
+                  meta={calculator.summary}
+                  onClick={() => onCalculatorOpen(calculatorId)}
                 />
               );
             })}
           </div>
-        </DetailPanel>
-      ) : null}
 
-      {activeSection === 'alertas' ? (
-        <DetailPanel
-          eyebrow="Puntos críticos"
-          title="Alertas del capítulo"
-          note="Avisos visibles sin convertir el protocolo en un bloque denso."
-        >
-          <div className="space-y-2">
-            {protocol.warnings.map((warning) => (
-              <div
-                key={warning}
-                className="flex items-start gap-3 rounded-[1rem] border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950/80"
-              >
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                <span>{warning}</span>
-              </div>
+          <div className="mt-4 grid gap-2 lg:grid-cols-2">
+            {preventionMedicationIds.map((medicationId) => (
+              <MedicationQuickRow
+                key={medicationId}
+                medication={getMedication(medicationId)}
+                onOpen={() => onMedicationOpen(medicationId)}
+              />
             ))}
           </div>
-        </DetailPanel>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="button" onClick={() => updateFlow({ step: stability === 'unstable' ? 2 : 3 })} className={subtleButtonClass}>
+              Volver
+            </button>
+            <button type="button" onClick={onCalculationsHub} className={subtleButtonClass}>
+              Abrir cálculos
+            </button>
+            <button type="button" onClick={onMedicationsHub} className={subtleButtonClass}>
+              Abrir medicamentos
+            </button>
+            <button
+              type="button"
+              onClick={onFinish}
+              className="inline-flex items-center gap-2 rounded-2xl bg-sky-800 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-700"
+            >
+              Finalizar
+            </button>
+          </div>
+        </section>
       ) : null}
     </div>
   );
@@ -1271,6 +1481,7 @@ const App = () => {
   const [route, setRoute] = useState({ view: 'home' });
   const [isScrolled, setIsScrolled] = useState(false);
   const [calculatorInputs, setCalculatorInputs] = useState(initialCalculatorInputs);
+  const [faFlowState, setFaFlowState] = useState(initialFaFlowState);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1288,11 +1499,23 @@ const App = () => {
     });
   };
 
+  const resetFaFlow = () => {
+    setFaFlowState(initialFaFlowState);
+  };
+
+  const updateFaFlow = (changes) => {
+    setFaFlowState((current) => ({
+      ...current,
+      ...changes,
+    }));
+  };
+
   const openModule = (moduleId, returnTo = { view: 'protocols' }) => {
     const module = getMotivoModule(moduleId);
 
     if (module.implemented) {
-      navigate({ view: 'protocol', protocolId: module.id, section: 'ruta', returnTo });
+      resetFaFlow();
+      navigate({ view: 'protocol', protocolId: module.id, returnTo });
       return;
     }
 
@@ -1346,28 +1569,40 @@ const App = () => {
   const renderView = () => {
     if (route.view === 'protocol') {
       return (
-        <ProtocolView
+        <FibrilacionAuricularFlowView
           protocol={getProtocol(route.protocolId ?? 'fibrilacion-auricular')}
-          initialSection={route.section ?? 'ruta'}
-          calculatorInputs={calculatorInputs}
-          onCalculatorChange={(calculatorId, field, value) =>
-            updateNestedState(setCalculatorInputs, calculatorId, field, value)
-          }
-          onCalculatorOpen={(calculatorId, section) =>
+          faFlowState={faFlowState}
+          onFaFlowChange={updateFaFlow}
+          onFaFlowReset={resetFaFlow}
+          onCalculatorOpen={(calculatorId) =>
             openCalculator(calculatorId, {
               view: 'protocol',
               protocolId: route.protocolId ?? 'fibrilacion-auricular',
-              section: section ?? 'calculos',
             })
           }
-          onMedicationOpen={(medicationId, section) =>
+          onCalculationsHub={() =>
+            openCalculations({
+              view: 'protocol',
+              protocolId: route.protocolId ?? 'fibrilacion-auricular',
+            })
+          }
+          onMedicationOpen={(medicationId) =>
             openMedication(medicationId, {
               view: 'protocol',
               protocolId: route.protocolId ?? 'fibrilacion-auricular',
-              section: section ?? 'medicacion',
+            })
+          }
+          onMedicationsHub={() =>
+            openMedications({
+              view: 'protocol',
+              protocolId: route.protocolId ?? 'fibrilacion-auricular',
             })
           }
           onBack={handleBack}
+          onFinish={() => {
+            resetFaFlow();
+            navigate({ view: 'home' });
+          }}
         />
       );
     }
