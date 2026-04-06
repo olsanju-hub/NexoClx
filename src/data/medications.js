@@ -443,6 +443,212 @@ export const medicationCatalog = {
       ),
     ],
   },
+  captopril: {
+    id: 'captopril',
+    name: 'Captopril',
+    protocolId: 'hta-urgencias',
+    family: 'Urgencia hipertensiva',
+    indication:
+      'Descenso gradual de la presión arterial en urgencia hipertensiva sin daño agudo de órgano diana.',
+    dose:
+      'En este contexto: 25 mg VO; puede repetirse a los 30 min si persiste la elevación tensional.',
+    route: 'Oral',
+    frequency: 'Dosis puntual con reevaluación clínica y tensional posterior.',
+    duration: 'Uso agudo en urgencias y ajuste ambulatorio posterior según respuesta.',
+    contraindications: [
+      'Embarazo.',
+      'Hiperpotasemia o insuficiencia renal relevante.',
+      'Antecedente de angioedema asociado a IECA.',
+    ],
+    renalAdjustment:
+      'El capítulo de HTA lo contraindica si existe insuficiencia renal relevante. Si se mantiene tratamiento, conviene reevaluar creatinina y potasio.',
+    hepaticAdjustment:
+      'La obra base no aporta un ajuste hepático numérico. Mantener prudencia clínica si existe hepatopatía avanzada.',
+    practicalNotes: [
+      'No usar por vía sublingual.',
+      'Inicio de acción a los 15-30 min y máximo efecto en 1-2 h.',
+      'Si hay daño agudo de órgano diana no es la estrategia de elección.',
+    ],
+    sourceScope:
+      'La pauta contextual y las contraindicaciones principales proceden del capítulo 32 del Murillo.',
+    sources: [
+      protocolSource(
+        'Murillo 7.ª ed. · urgencia hipertensiva',
+        referenceEntry({
+          id: 'captopril-hta',
+          verifiedPage: 247,
+          pdfPage: 272,
+          note: 'Tratamiento oral inicial en urgencia hipertensiva.',
+        }),
+      ),
+    ],
+  },
+  labetalol: {
+    id: 'labetalol',
+    name: 'Labetalol',
+    protocolId: 'hta-urgencias',
+    family: 'Urgencia y emergencia hipertensiva',
+    indication:
+      'Control de la presión arterial en urgencia hipertensiva por vía oral y en emergencia hipertensiva por vía intravenosa.',
+    dose:
+      'En este contexto: 100 mg VO y repetir a las 2 h si hace falta. En emergencia: 20 mg IV lento cada 5 min hasta 100 mg o perfusión 0,5-2 mg/min; después 100 mg VO/12 h.',
+    route: 'Oral / intravenosa',
+    frequency: 'Bolos o perfusión IV titulados; cada 12 h por vía oral al pasar a estabilidad.',
+    duration: 'Uso agudo con transición posterior cuando las cifras se estabilizan.',
+    contraindications: [
+      'Insuficiencia cardíaca con fallo sistólico.',
+      'Asma, EPOC broncoespástica o broncoespasmo activo.',
+      'Bloqueo AV de segundo/tercer grado o isquemia arterial periférica relevante.',
+    ],
+    renalAdjustment:
+      'La obra base no fija un ajuste renal cerrado. Requiere individualización y monitorización hemodinámica.',
+    hepaticAdjustment:
+      'El capítulo no aporta un ajuste hepático cuantificado; si existe hepatopatía relevante conviene extremar la vigilancia clínica.',
+    practicalNotes: [
+      'En urgencia hipertensiva por vía oral inicia acción a los 15-30 min y máximo efecto a las 2-4 h.',
+      'En emergencia hipertensiva se usa por vía intravenosa con monitorización continua.',
+      'Puede mantenerse por vía oral tras estabilización.',
+    ],
+    sourceScope:
+      'La pauta oral procede del capítulo de urgencia hipertensiva y la pauta intravenosa del capítulo de emergencia hipertensiva.',
+    sources: [
+      protocolSource(
+        'Murillo 7.ª ed. · urgencia hipertensiva',
+        referenceEntry({
+          id: 'labetalol-hta-oral',
+          verifiedPage: 247,
+          pdfPage: 272,
+          note: 'Labetalol oral en urgencia hipertensiva.',
+        }),
+      ),
+      protocolSource(
+        'Murillo 7.ª ed. · emergencia hipertensiva',
+        referenceEntry({
+          id: 'labetalol-hta-iv',
+          verifiedPage: 251,
+          pdfPage: 276,
+          note: 'Labetalol intravenoso y transición oral en emergencia hipertensiva.',
+        }),
+      ),
+    ],
+  },
+  amlodipino: {
+    id: 'amlodipino',
+    name: 'Amlodipino',
+    protocolId: 'hta-urgencias',
+    family: 'Urgencia hipertensiva',
+    indication:
+      'Alternativa oral de inicio más lento para descenso gradual de la presión arterial en urgencia hipertensiva.',
+    dose: 'En este contexto: 5 mg VO; el máximo efecto aparece entre 1 y 6 h.',
+    route: 'Oral',
+    frequency: 'Dosis inicial diaria con reevaluación posterior.',
+    duration: 'Uso agudo y ajuste ambulatorio posterior según control tensional.',
+    contraindications: [
+      'Evitar si se requiere un descenso inmediato de la presión arterial.',
+      'Precaución en bloqueo AV de alto grado según el capítulo base.',
+      'Vigilar hipotensión si se asocia a otros vasodilatadores.',
+    ],
+    renalAdjustment:
+      'La obra base no describe un ajuste renal específico; mantener vigilancia clínica y hemodinámica.',
+    hepaticAdjustment:
+      'No se describe un ajuste hepático numérico en la bibliografía base; iniciar con prudencia si existe hepatopatía avanzada.',
+    practicalNotes: [
+      'Es más lento que captopril o labetalol oral.',
+      'Encaja mejor cuando se busca un descenso progresivo en 24-48 h.',
+    ],
+    sourceScope:
+      'La pauta de inicio y el papel contextual proceden del capítulo 32 del Murillo.',
+    sources: [
+      protocolSource(
+        'Murillo 7.ª ed. · urgencia hipertensiva',
+        createBibliographyEntry({
+          id: 'amlodipino-hta',
+          referenceId: 'murillo7',
+          verifiedPages: [247, 248],
+          pdfPages: [272, 273],
+          note: 'Antagonista del calcio citado en el tratamiento oral de la urgencia hipertensiva.',
+        }),
+      ),
+    ],
+  },
+  nitroglicerina: {
+    id: 'nitroglicerina',
+    name: 'Nitroglicerina',
+    protocolId: 'hta-urgencias',
+    family: 'Emergencia hipertensiva',
+    indication:
+      'Perfusión intravenosa útil cuando la emergencia hipertensiva coexiste con síndrome coronario agudo, edema agudo de pulmón o descarga catecolaminérgica.',
+    dose:
+      'En este contexto: 20 microg/min IV iniciales, titulando según respuesta clínica y tensional.',
+    route: 'Intravenosa',
+    frequency: 'Perfusión continua titulada.',
+    duration: 'Uso agudo monitorizado mientras persiste la indicación.',
+    contraindications: [
+      'Hipotensión o deterioro hemodinámico no corregido.',
+      'No es la primera elección aislada si no hay contexto coronario o edema agudo de pulmón.',
+      'Requiere monitorización estrecha para evitar descensos bruscos.',
+    ],
+    renalAdjustment:
+      'La bibliografía base no describe un ajuste renal específico; la titulación se guía por respuesta hemodinámica.',
+    hepaticAdjustment:
+      'La bibliografía base no define un ajuste hepático específico; ajustar por respuesta clínica y tolerancia.',
+    practicalNotes: [
+      'Especialmente útil si hay síndrome coronario agudo o edema agudo de pulmón.',
+      'Debe titularse con monitorización continua.',
+    ],
+    sourceScope:
+      'La indicación y la pauta de perfusión proceden del capítulo 33 del Murillo.',
+    sources: [
+      protocolSource(
+        'Murillo 7.ª ed. · emergencia hipertensiva',
+        referenceEntry({
+          id: 'nitroglicerina-hta',
+          verifiedPage: 251,
+          pdfPage: 276,
+          note: 'Perfusión de nitroglicerina en emergencia hipertensiva.',
+        }),
+      ),
+    ],
+  },
+  nitroprusiato: {
+    id: 'nitroprusiato',
+    name: 'Nitroprusiato sódico',
+    protocolId: 'hta-urgencias',
+    family: 'Emergencia hipertensiva',
+    indication:
+      'Tratamiento intravenoso de elección en hipertensión maligna o encefalopatía hipertensiva dentro de la emergencia hipertensiva.',
+    dose:
+      'En este contexto: 1 microg/kg/min IV inicial; puede subir hasta 3 microg/kg/min y hasta 10 microg/kg/min en disección aórtica.',
+    route: 'Intravenosa',
+    frequency: 'Perfusión continua titulada.',
+    duration: 'Uso agudo monitorizado hasta controlar la situación crítica.',
+    contraindications: [
+      'Eclampsia.',
+      'Riesgo de intoxicación cianhídrica en insuficiencia renal o infusiones prolongadas.',
+      'Necesita monitorización continua y proteger la solución de la luz.',
+    ],
+    renalAdjustment:
+      'La obra advierte de acumulación de tiocianato e intoxicación cianhídrica en insuficiencia renal o cuando la perfusión se prolonga.',
+    hepaticAdjustment:
+      'Los radicales cianhídricos se metabolizan en el hígado; si existe hepatopatía significativa conviene extremar la vigilancia clínica.',
+    practicalNotes: [
+      'Proteger la solución de la luz.',
+      'El capítulo lo sitúa como tratamiento de elección en hipertensión maligna y encefalopatía hipertensiva.',
+    ],
+    sourceScope:
+      'La pauta de perfusión y las advertencias clave proceden del capítulo 33 del Murillo.',
+    sources: [
+      protocolSource(
+        'Murillo 7.ª ed. · emergencia hipertensiva',
+        referenceEntry({
+          id: 'nitroprusiato-hta',
+          verifiedPage: 251,
+          pdfPage: 276,
+          note: 'Pauta intravenosa de nitroprusiato sódico en emergencia hipertensiva.',
+        }),
+      ),
+    ],
+  },
 };
 
 export const medicationList = Object.values(medicationCatalog);
@@ -462,6 +668,16 @@ export const medicationGroups = [
     id: 'puente-o-avk',
     title: 'Puente o AVK',
     items: ['acenocumarol', 'enoxaparina'],
+  },
+  {
+    id: 'hta-oral',
+    title: 'HTA oral',
+    items: ['captopril', 'labetalol', 'amlodipino'],
+  },
+  {
+    id: 'hta-iv',
+    title: 'HTA IV',
+    items: ['nitroprusiato', 'nitroglicerina', 'labetalol'],
   },
 ];
 
