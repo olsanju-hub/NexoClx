@@ -1,4 +1,4 @@
-import React, { startTransition, useDeferredValue, useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -6,12 +6,9 @@ import {
   Calculator,
   ChevronRight,
   ClipboardList,
-  Clock3,
   ExternalLink,
   LayoutDashboard,
   Pill,
-  Search,
-  Stethoscope,
 } from 'lucide-react';
 import { buildReferenceHref } from './data/bibliography';
 import {
@@ -23,13 +20,7 @@ import {
   implementedCalculators,
 } from './data/calculators';
 import { getMedication, medicationGroups } from './data/medications';
-import {
-  bibliographyBaseUsed,
-  coreReference,
-  getMotivoModule,
-  motivoConsultaModules,
-  recentActivity,
-} from './data/modules';
+import { getMotivoModule, motivoConsultaModules } from './data/modules';
 import { getProtocol } from './data/protocols';
 
 const brandMark = `${import.meta.env.BASE_URL}branding/app-icon-512.png`;
@@ -713,160 +704,39 @@ const CalculatorPanel = ({ calculatorId, values, onChange, onOpenDetail, compact
   );
 };
 
-const HomeView = ({
-  searchQuery,
-  onSearchChange,
-  searchResults,
-  onSearchOpen,
-  onProtocolsOpen,
-  onCalculationsOpen,
-  onMedicationsOpen,
-  onActivityOpen,
-  onOpenMainProtocol,
-  onOpenBibliography,
-}) => {
-  const activeProtocol = motivoConsultaModules.find((module) => module.implemented) ?? motivoConsultaModules[0];
-  const auditedModules = motivoConsultaModules.filter((module) => !module.implemented);
-  const medicationCount = medicationGroups.reduce((count, group) => count + group.items.length, 0);
-  const moduleCount = motivoConsultaModules.length;
+const HomeView = ({ onProtocolsOpen, onCalculationsOpen, onMedicationsOpen }) => (
+  <div className="mx-auto max-w-5xl space-y-4">
+    <section className={`${shellCardClass} p-5 sm:p-6`}>
+      <h1 className="text-[2rem] font-semibold tracking-tight text-slate-950 sm:text-[2.35rem]">Inicio clínico</h1>
+      <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500 sm:text-base">
+        Acceso rápido a protocolos, cálculos y medicamentos.
+      </p>
+    </section>
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_22rem]">
-        <div className={`${shellCardClass} relative overflow-hidden p-5 sm:p-6`}>
-          <div className="absolute inset-y-0 right-0 hidden w-36 bg-gradient-to-l from-sky-50 via-transparent to-transparent sm:block" />
-          <div className="relative z-10">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge tone="active">Entrada principal</StatusBadge>
-              <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                {activeProtocol.chapter}
-              </span>
-            </div>
-
-            <h1 className="mt-4 max-w-xl text-[2rem] font-semibold tracking-tight text-slate-950 sm:text-[2.35rem]">
-              Consulta rápida, clara y usable delante del paciente.
-            </h1>
-            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500 sm:text-base">
-              NexoClx arranca desde una home ligera y abre protocolos, cálculos y fármacos sin sensación de guía larga.
-            </p>
-
-            <div className="relative mt-5 max-w-2xl">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => onSearchChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && searchResults[0]) {
-                    onSearchOpen(searchResults[0].id);
-                  }
-                }}
-                placeholder="Busca motivo, protocolo o tema"
-                className="w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 px-4 py-3.5 pl-12 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-sky-200 focus:bg-white"
-              />
-            </div>
-
-            {searchQuery.trim() ? (
-              <div className="mt-3 max-w-2xl overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white">
-                {searchResults.length > 0 ? (
-                  searchResults.slice(0, 5).map((module) => (
-                    <button
-                      key={module.id}
-                      type="button"
-                      onClick={() => onSearchOpen(module.id)}
-                      className="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-slate-50"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{module.title}</p>
-                        <p className="mt-1 text-xs text-slate-500">{formatReference(module)}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-slate-300" />
-                    </button>
-                  ))
-                ) : (
-                  <p className="px-4 py-3 text-sm text-slate-500">Sin coincidencias en esta fase.</p>
-                )}
-              </div>
-            ) : null}
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => onOpenMainProtocol(activeProtocol.id)}
-                className="inline-flex items-center gap-2 rounded-2xl bg-sky-800 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-sky-700"
-              >
-                <Stethoscope className="h-4 w-4" />
-                Abrir FA
-              </button>
-              <button type="button" onClick={onProtocolsOpen} className={subtleButtonClass}>
-                Protocolos
-              </button>
-              <button type="button" onClick={onOpenBibliography} className="text-xs font-medium text-slate-500 transition-colors hover:text-slate-800">
-                Base clínica
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <section className={`${panelClass} overflow-hidden`}>
-          <div className="border-b border-slate-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-400">Reciente</p>
-                <h2 className="mt-1 text-base font-semibold tracking-tight text-slate-950">Acceso inmediato</h2>
-              </div>
-              <Clock3 className="h-4 w-4 text-slate-300" />
-            </div>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {recentActivity.slice(0, 4).map((item) => (
-              <button
-                key={`${item.time}-${item.title}`}
-                type="button"
-                onClick={() => onActivityOpen(item.target)}
-                className="group flex w-full items-center justify-between gap-3 px-5 py-3 text-left transition-colors hover:bg-slate-50"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      {item.time}
-                    </span>
-                    <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
-                  </div>
-                  <p className="mt-1 truncate text-xs text-slate-500">{item.meta}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
-              </button>
-            ))}
-          </div>
-        </section>
-      </section>
-
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <HomeShortcutCard
-          icon={ClipboardList}
-          title="Protocolos"
-          meta={`${moduleCount} temas en la base`}
-          onClick={onProtocolsOpen}
-          tone="dark"
-        />
-        <HomeShortcutCard
-          icon={Calculator}
-          title="Cálculos"
-          meta={`${implementedCalculators.length} herramientas activas`}
-          onClick={onCalculationsOpen}
-          tone="primary"
-        />
-        <HomeShortcutCard
-          icon={Pill}
-          title="Medicamentos"
-          meta={`${medicationCount} fichas conectadas`}
-          onClick={onMedicationsOpen}
-        />
-      </section>
-    </div>
-  );
-};
+    <section className="grid gap-3 lg:grid-cols-3">
+      <HomeShortcutCard
+        icon={ClipboardList}
+        title="Protocolos"
+        meta="Motivos de consulta"
+        onClick={onProtocolsOpen}
+        tone="dark"
+      />
+      <HomeShortcutCard
+        icon={Calculator}
+        title="Cálculos"
+        meta="Escalas y fórmulas"
+        onClick={onCalculationsOpen}
+        tone="primary"
+      />
+      <HomeShortcutCard
+        icon={Pill}
+        title="Medicamentos"
+        meta="Fichas rápidas"
+        onClick={onMedicationsOpen}
+      />
+    </section>
+  </div>
+);
 
 const ProtocolsView = ({ onBack, onModuleOpen }) => {
   const activeModules = motivoConsultaModules.filter((module) => module.implemented);
@@ -1410,10 +1280,7 @@ const MedicationDetailView = ({ medication, onBack }) => (
 const App = () => {
   const [route, setRoute] = useState({ view: 'home' });
   const [isScrolled, setIsScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [calculatorInputs, setCalculatorInputs] = useState(initialCalculatorInputs);
-
-  const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1423,12 +1290,6 @@ const App = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const searchResults = deferredSearch
-    ? motivoConsultaModules.filter((module) =>
-        [module.title, module.shortTitle, module.section, module.chapter].join(' ').toLowerCase().includes(deferredSearch),
-      )
-    : [];
 
   const navigate = (nextRoute) => {
     startTransition(() => {
@@ -1446,30 +1307,6 @@ const App = () => {
     }
 
     navigate({ view: 'audit', moduleId: module.id, returnTo });
-  };
-
-  const openActivityTarget = (target) => {
-    if (target.type === 'protocol') {
-      openModule(target.id, { view: 'home' });
-      return;
-    }
-
-    if (target.type === 'calculator') {
-      navigate({
-        view: 'calculator',
-        calculatorId: target.id,
-        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular', section: 'calculos' },
-      });
-      return;
-    }
-
-    if (target.type === 'medication') {
-      navigate({
-        view: 'medication',
-        medicationId: target.id,
-        returnTo: { view: 'protocol', protocolId: 'fibrilacion-auricular', section: 'medicacion' },
-      });
-    }
   };
 
   const openCalculations = (returnTo = { view: 'home' }) => {
@@ -1597,19 +1434,9 @@ const App = () => {
 
     return (
       <HomeView
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchResults={searchResults}
-        onSearchOpen={(moduleId) => {
-          setSearchQuery('');
-          openModule(moduleId, { view: 'home' });
-        }}
         onProtocolsOpen={() => navigate({ view: 'protocols' })}
         onCalculationsOpen={() => openCalculations({ view: 'home' })}
         onMedicationsOpen={() => openMedications({ view: 'home' })}
-        onActivityOpen={openActivityTarget}
-        onOpenMainProtocol={(moduleId) => openModule(moduleId, { view: 'home' })}
-        onOpenBibliography={() => openPdf(coreReference.filePath)}
       />
     );
   };
@@ -1620,10 +1447,6 @@ const App = () => {
       <AppHeader isScrolled={isScrolled} pageLabel={getPageLabel(route)} onHome={() => navigate({ view: 'home' })} />
       <main className="pb-24 pt-20 lg:pl-24 lg:pb-10">
         <div className="px-4 sm:px-6 lg:px-8">{renderView()}</div>
-
-        <div className="mx-auto mt-6 hidden max-w-6xl px-4 text-xs text-slate-400 sm:px-6 lg:block">
-          Base clínica activa: {bibliographyBaseUsed[0].shortTitle}.
-        </div>
       </main>
     </div>
   );
