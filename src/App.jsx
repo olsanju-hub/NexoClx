@@ -324,12 +324,12 @@ const HomeShortcutCard = ({ icon: Icon, title, meta, onClick, tone = 'light' }) 
     <button
       type="button"
       onClick={onClick}
-      className={`group flex min-h-[118px] flex-col justify-between rounded-[1.6rem] border px-4 py-4 text-left transition-colors hover:border-slate-300 ${toneClass}`}
+      className={`group flex min-h-[104px] flex-col justify-between rounded-[1.45rem] border px-4 py-4 text-left transition-colors hover:border-slate-300 ${toneClass}`}
     >
       <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${iconClass}`}>
         <Icon className="h-5 w-5" />
       </span>
-      <div className="pt-5">
+      <div className="pt-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-base font-semibold tracking-tight">{title}</p>
           <ChevronRight
@@ -338,7 +338,7 @@ const HomeShortcutCard = ({ icon: Icon, title, meta, onClick, tone = 'light' }) 
             }`}
           />
         </div>
-        <p className={`mt-1 text-xs ${metaClass}`}>{meta}</p>
+        {meta ? <p className={`mt-1 text-xs ${metaClass}`}>{meta}</p> : null}
       </div>
     </button>
   );
@@ -705,33 +705,23 @@ const CalculatorPanel = ({ calculatorId, values, onChange, onOpenDetail, compact
 };
 
 const HomeView = ({ onProtocolsOpen, onCalculationsOpen, onMedicationsOpen }) => (
-  <div className="mx-auto max-w-5xl space-y-4">
-    <section className={`${shellCardClass} p-5 sm:p-6`}>
-      <h1 className="text-[2rem] font-semibold tracking-tight text-slate-950 sm:text-[2.35rem]">Inicio clínico</h1>
-      <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500 sm:text-base">
-        Acceso rápido a protocolos, cálculos y medicamentos.
-      </p>
-    </section>
-
-    <section className="grid gap-3 lg:grid-cols-3">
+  <div className="mx-auto max-w-4xl">
+    <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <HomeShortcutCard
         icon={ClipboardList}
         title="Protocolos"
-        meta="Motivos de consulta"
         onClick={onProtocolsOpen}
         tone="dark"
       />
       <HomeShortcutCard
         icon={Calculator}
         title="Cálculos"
-        meta="Escalas y fórmulas"
         onClick={onCalculationsOpen}
         tone="primary"
       />
       <HomeShortcutCard
         icon={Pill}
         title="Medicamentos"
-        meta="Fichas rápidas"
         onClick={onMedicationsOpen}
       />
     </section>
